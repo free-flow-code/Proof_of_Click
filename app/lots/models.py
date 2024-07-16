@@ -1,0 +1,23 @@
+from sqlalchemy import Column, Integer, Float, Date, ForeignKey
+from sqlalchemy.orm import relationship
+from app.database import Base
+
+
+class Lots(Base):
+    __tablename__ = "lots"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(ForeignKey("users.id"), nullable=False)
+    date_at_create = Column(Date, nullable=False)
+    expiration_date = Column(Date, nullable=False)
+    game_item_id = Column(ForeignKey("game_items.id"), nullable=False)
+    start_price = Column(Float, nullable=False)
+    best_price = Column(Float)
+    best_price_user_id = Column(ForeignKey("users.id"))
+
+    user = relationship("Users", foreign_keys=[user_id], backref="lots")
+    game_item = relationship("GameItems", backref="lots")
+    best_price_user = relationship("Users", foreign_keys=[best_price_user_id], backref="bids")
+
+    def __str__(self):
+        return f"Лот №{self.id}"
