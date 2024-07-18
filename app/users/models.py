@@ -17,7 +17,7 @@ class Users(Base):
     blocks_balance = Column(Float, default=0.000)  # Пересчитывать в Celery каждые 10 сек., промежуточные данные хранить в Redis, итоговые записывать в БД
     blocks_per_sec = Column(Float, default=0.000)  # Пересчитывать каждый раз при покупке улучшений
     blocks_per_click = Column(Float, default=0.001)  # Пересчитывать каждый раз при покупке умножителя
-    improvements = (ForeignKey("improvements.id"))
+    improvements = Column(ForeignKey("improvements.id"))
     telegram_id = Column(Integer)
     last_update_time = Column(Date)
 

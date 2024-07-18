@@ -15,5 +15,9 @@ class Settings(BaseSettings):
     DB_PASS: str = "root"
     DB_NAME: str = "mydb"
 
+    DOMAIN: str
+    JWT_SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+
 
 settings = Settings()
