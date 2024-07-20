@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Proof of Click</title>
+</head>
+<body>
+  <div>
+    {% for item in items %}
+      <div style="display: flex; margin-bottom: 15px; align-self: center;">
+        <img src="{{ url_for('static', path='images/' + item.image_id|string + '.webp') }}"
+             alt="Фото отеля" width="200">
+        <div style="margin-left: 15px;">
+          <h1>{{ item.name }}</h1>
+          <h4>{{ item.date_at_mine }}</h4>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</body>
+</html>

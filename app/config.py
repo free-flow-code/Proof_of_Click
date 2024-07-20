@@ -18,6 +18,16 @@ class Settings(BaseSettings):
     DOMAIN: str
     JWT_SECRET_KEY: str
     ALGORITHM: str = "HS256"
+    JWT_TOKEN_DELAY_MINUTES: int = 30
+    ORIGINS: list = ["localhost:8000", "127.0.0.1:8000"]
+
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+
+    #SMTP_HOST: str
+    #SMTP_USER: str
+    #SMTP_PASSWORD: str
+    #SMTP_PORT: int
 
 
 settings = Settings()

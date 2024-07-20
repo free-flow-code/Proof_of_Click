@@ -2,7 +2,6 @@ import os
 import string
 import random
 from jose import jwt
-from fastapi import HTTPException
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from pydantic import EmailStr
@@ -10,6 +9,7 @@ from pydantic import EmailStr
 from app.config import settings
 from app.users.dao import UsersDAO
 from app.users.schemas import SUserAuth
+from app.exceptions import UsernameAlreadyExistsException, EmailAlreadyExistException
 
 os.environ["PASSLIB_BUILTIN_BCRYPT"] = "enabled"
 
@@ -32,7 +32,7 @@ def generate_referral_link():
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=30)
+    expire = datetime.utcnow() + timedelta(minutes=settings.JWT_TOKEN_DELAY_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode, settings.JWT_SECRET_KEY, settings.ALGORITHM
@@ -53,19 +53,15 @@ async def authenticate_user(mail: EmailStr, password: str):
 async def add_user(user_data: SUserAuth, referral_link: str = None):
     existing_username = await UsersDAO.find_one_or_none(username=user_data.username)
     if existing_username:
-        raise HTTPException(status_code=500)  # TODO
+        raise UsernameAlreadyExistsException
     existing_mail = await UsersDAO.find_one_or_none(mail=user_data.mail)
     if existing_mail:
-        raise HTTPException(status_code=500)  # TODO
+        raise EmailAlreadyExistException
 
     if not referral_link:
         referer = None
     else:
-        existing_ref_link = await UsersDAO.find_one_or_none(
-            referral_link=f'{settings.DOMAIN}/auth/register/{referral_link}')
-        if not existing_ref_link:
-            raise HTTPException(status_code=500)  # TODO
-        referer = existing_ref_link
+        referer = await UsersDAO.find_one_or_none(referral_link=f'{settings.DOMAIN}/auth/register/{referral_link}')
 
     hashed_password = get_password_hash(user_data.password)
     await UsersDAO.add(

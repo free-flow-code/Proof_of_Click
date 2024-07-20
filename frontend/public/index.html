@@ -233,13 +233,13 @@
       plusOne.addEventListener('animationend', () => {
         plusOne.remove();
       });
-
+/*
       if (!isSending) {
         isSending = true;
         setTimeout(sendClicks, 1000);
       }
     }
-
+*/
     // Using mousedown and mouseup instead of click
     clickImage.addEventListener('mousedown', handleClick);
 
@@ -255,6 +255,28 @@
       }
       isSending = false;
     }
+
+    // Sending clicks to FastAPI backend every 2 seconds
+    setInterval(() => {
+      if (localClicks > 0) {
+        fetch('/clicks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ clicks: localClicks })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status !== 'accepted') {
+            alert(`Click rejected: ${data.message}`);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+
+        localClicks = 0;
+      }
+    }, 2000);
 
     socket.on('clickAcknowledged', (data) => {
       if (data.status !== 'accepted') {
