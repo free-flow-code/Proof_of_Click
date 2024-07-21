@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str
     ALGORITHM: str = "HS256"
     JWT_TOKEN_DELAY_MINUTES: int = 30
-    ORIGINS: list = ["localhost:8000", "127.0.0.1:8000"]
+    ORIGINS: list = ["localhost:8000", "127.0.0.1:8000", "localhost:3000", "http://127.0.0.1:3000"]
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

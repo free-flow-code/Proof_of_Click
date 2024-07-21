@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Request, Depends,HTTPException
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import JSONResponse
 from json import JSONDecodeError
 
@@ -17,6 +17,7 @@ async def receive_clicks(request: Request):
     try:
         data = await request.json()
         clicks = data.get("clicks")
+        rounded_clicks = round(clicks, 3)
         if clicks is None:
             raise ClicksDataException
     except JSONDecodeError:
@@ -24,6 +25,6 @@ async def receive_clicks(request: Request):
         return
 
     # Обработка кликов
-    print(f"Received {clicks} clicks")
+    print(f"Received {rounded_clicks} clicks")
 
     return JSONResponse(content={"status": "accepted"})

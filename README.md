@@ -1,9 +1,40 @@
 # Proof of Click
 
+## Install Python3.9 (Ubuntu)
+
+```shell
+sudo apt install build-essential zlib1g-dev \
+libncurses5-dev libgdbm-dev libnss3-dev \
+libssl-dev libreadline-dev libffi-dev curl software-properties-common
+```
+
+`wget https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tar.xz`
+
+`tar -xf Python-3.9.0.tar.xz`
+
+`cd Python-3.9.0`
+
+`./configure`
+
+`sudo make altinstall`
+
+Path to interpreter: `usr/local/bin/python3.9`
+
+## Install nodejs/npm
+
+`sudo apt install nodejs`
+
+`sudo apt install npm`
+
 ## Запуск приложения локально
 
-Python 3.9 должен быть установлен. Nodejs 20.15.1
+Python 3.9, nodejs 12.22.9, npm 8.5.1 должны быть установлены.
 Создайте и активируйте виртуальное окружение и установите зависимости:
+
+
+```shell
+source venv/bin/activate
+```
 
 ```sh
 $ pip install -r requirements.txt

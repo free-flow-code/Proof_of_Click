@@ -215,80 +215,82 @@
     const counter = document.getElementById('counter');
 
     function handleClick(event) {
-      localClicks+=0.001;
-      clickCount+=0.001;
-      if (!requestId) {
-        requestId = requestAnimationFrame(updateCounter);
-      }
+        console.log('Click registered');
+        localClicks += 0.001;
+        clickCount += 0.001;
+        if (!requestId) {
+            requestId = requestAnimationFrame(updateCounter);
+        }
 
-      // Adding animation +1
-      const plusOne = document.createElement('div');
-      plusOne.textContent = '+1';
-      plusOne.classList.add('plusOne');
-      plusOne.style.left = event.clientX + 'px';
-      plusOne.style.top = (event.clientY - 40) + 'px';
-      document.body.appendChild(plusOne);
+        // Adding animation +1
+        const plusOne = document.createElement('div');
+        plusOne.textContent = '+1';
+        plusOne.classList.add('plusOne');
+        plusOne.style.left = event.clientX + 'px';
+        plusOne.style.top = (event.clientY - 40) + 'px';
+        document.body.appendChild(plusOne);
 
-      // Removing the element after the animation ends
-      plusOne.addEventListener('animationend', () => {
-        plusOne.remove();
-      });
-/*
+        // Removing the element after the animation ends
+        plusOne.addEventListener('animationend', () => {
+            plusOne.remove();
+        });
+        /*
       if (!isSending) {
         isSending = true;
         setTimeout(sendClicks, 1000);
-      }
+      }*/
     }
-*/
-    // Using mousedown and mouseup instead of click
-    clickImage.addEventListener('mousedown', handleClick);
+        // Using mousedown and mouseup instead of click
+        clickImage.addEventListener('mousedown', handleClick);
 
-    function updateCounter() {
-      counter.childNodes[0].nodeValue = `Blocks: ${formatNumber(clickCount.toFixed(3))}`;
-      requestId = null;
-    }
+        function updateCounter() {
+            console.log('Counter updated');
+            counter.childNodes[0].nodeValue = `Blocks: ${formatNumber(clickCount.toFixed(3))}`;
+            requestId = null;
+        }
 
-    function sendClicks() {
-      if (localClicks > 0) {
-        socket.emit('click', { clicks: localClicks });
-        localClicks = 0;
-      }
-      isSending = false;
-    }
+        function sendClicks() {
+            if (localClicks > 0) {
+                socket.emit('click', {clicks: localClicks});
+                localClicks = 0;
+            }
+            isSending = false;
+        }
 
-    // Sending clicks to FastAPI backend every 2 seconds
-    setInterval(() => {
-      if (localClicks > 0) {
-        fetch('/clicks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ clicks: localClicks })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status !== 'accepted') {
-            alert(`Click rejected: ${data.message}`);
-          }
-        })
-        .catch(error => console.error('Error:', error));
+        // Sending clicks to FastAPI backend every 2 seconds
+        setInterval(() => {
+            const roundedClicks = parseFloat(localClicks.toFixed(3));
+            if (localClicks > 0) {
+                fetch('http://127.0.0.1:8000/clicks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({clicks: roundedClicks})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'accepted') {
+                            alert(`Click rejected: ${data.message}`);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
 
-        localClicks = 0;
-      }
-    }, 2000);
+                localClicks = 0;
+            }
+        }, 2000);
 
-    socket.on('clickAcknowledged', (data) => {
-      if (data.status !== 'accepted') {
-        alert(`Click rejected: ${data.message}`);
-      }
-    });
+        socket.on('clickAcknowledged', (data) => {
+            if (data.status !== 'accepted') {
+                alert(`Click rejected: ${data.message}`);
+            }
+        });
 
-    function formatNumber(num) {
-      const [integerPart, decimalPart] = num.split('.');
-      const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-      return `${formattedIntegerPart}.${decimalPart}`;
-    }
+        function formatNumber(num) {
+            const [integerPart, decimalPart] = num.split('.');
+            const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return `${formattedIntegerPart}.${decimalPart}`;
+        }
   </script>
 </body>
 </html>

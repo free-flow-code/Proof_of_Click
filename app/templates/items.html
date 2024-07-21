@@ -11,7 +11,7 @@
   <div>
     {% for item in items %}
       <div style="display: flex; margin-bottom: 15px; align-self: center;">
-        <img src="{{ url_for('static', path='images/' + item.image_id|string + '.webp') }}"
+        <img src="{{ url_for('static', path='images/' + item.image_id|string + '.png') }}"
              alt="Фото отеля" width="200">
         <div style="margin-left: 15px;">
           <h1>{{ item.name }}</h1>
