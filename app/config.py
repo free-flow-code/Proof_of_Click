@@ -19,15 +19,16 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str
     ALGORITHM: str = "HS256"
     JWT_TOKEN_DELAY_MINUTES: int = 30
-    ORIGINS: list = ["localhost:8000", "127.0.0.1:8000", "localhost:3000", "http://127.0.0.1:3000"]
+    ORIGINS: list = ["http://127.0.0.1:8000", "http://127.0.0.1:3000"]
+    SET_COOKIE_SECURE: bool = False  # Установите True, если используете HTTPS
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
 
-    #SMTP_HOST: str
-    #SMTP_USER: str
-    #SMTP_PASSWORD: str
-    #SMTP_PORT: int
+    SMTP_HOST: str
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+    SMTP_PORT: int
 
 
 settings = Settings()

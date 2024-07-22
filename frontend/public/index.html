@@ -205,6 +205,39 @@
   </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
+
+    // Функция для отправки кликов на сервер
+    function sendClicks() {
+        if (localClicks > 0) {
+            fetch('http://127.0.0.1:8000/clicks', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({clicks: localClicks})
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    // Если токен истек, перенаправляем на страницу логина
+                    window.location.href = '/login.html';
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.status !== 'accepted') {
+                    alert(`Click rejected: ${data.message}`);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            localClicks = 0;
+        }
+        isSending = false;
+    }
+
+    // Обработка кликов
     const socket = io();
     let clickCount = 0;
     let localClicks = 0;
@@ -234,57 +267,27 @@
         plusOne.addEventListener('animationend', () => {
             plusOne.remove();
         });
-        /*
-      if (!isSending) {
-        isSending = true;
-        setTimeout(sendClicks, 1000);
-      }*/
     }
-        // Using mousedown and mouseup instead of click
-        clickImage.addEventListener('mousedown', handleClick);
+    // Using mousedown and mouseup instead of click
+    clickImage.addEventListener('mousedown', handleClick);
 
-        function updateCounter() {
-            console.log('Counter updated');
-            counter.childNodes[0].nodeValue = `Blocks: ${formatNumber(clickCount.toFixed(3))}`;
-            requestId = null;
+    function updateCounter() {
+        console.log('Counter updated');
+        counter.childNodes[0].nodeValue = `Blocks: ${formatNumber(clickCount.toFixed(3))}`;
+        requestId = null;
+    }
+
+    // Sending clicks to FastAPI backend every 2 seconds
+    setInterval(() => {
+        const roundedClicks = parseFloat(localClicks.toFixed(3));
+        sendClicks(); // Изменили тут
+    }, 2000);
+
+    socket.on('clickAcknowledged', (data) => {
+        if (data.status !== 'accepted') {
+            alert(`Click rejected: ${data.message}`);
         }
-
-        function sendClicks() {
-            if (localClicks > 0) {
-                socket.emit('click', {clicks: localClicks});
-                localClicks = 0;
-            }
-            isSending = false;
-        }
-
-        // Sending clicks to FastAPI backend every 2 seconds
-        setInterval(() => {
-            const roundedClicks = parseFloat(localClicks.toFixed(3));
-            if (localClicks > 0) {
-                fetch('http://127.0.0.1:8000/clicks', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({clicks: roundedClicks})
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status !== 'accepted') {
-                            alert(`Click rejected: ${data.message}`);
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-
-                localClicks = 0;
-            }
-        }, 2000);
-
-        socket.on('clickAcknowledged', (data) => {
-            if (data.status !== 'accepted') {
-                alert(`Click rejected: ${data.message}`);
-            }
-        });
+    });
 
         function formatNumber(num) {
             const [integerPart, decimalPart] = num.split('.');

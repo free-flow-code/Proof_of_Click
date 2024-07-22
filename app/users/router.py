@@ -1,6 +1,9 @@
+import logging
+
 from fastapi import APIRouter, Response, Depends
 
-from app.users.schemas import SUserAuth
+from app.config import settings
+from app.users.schemas import SUserAuth, SUserLogin
 from app.users.models import Users
 from app.users.dao import UsersDAO
 from app.users.auth import authenticate_user, add_user, create_access_token
@@ -15,9 +18,10 @@ router = APIRouter(
 
 
 @router.post("/register")
-async def register_user(user_data: SUserAuth):
+async def register_user(response: Response, user_data: SUserAuth):
     await add_user(user_data)
-    return {"detail": "User register successfully"}
+    await login_user(response, user_data)
+    logging.info(f"User {user_data.username} registered")
 
 
 @router.post("/register/{referral_link}")
@@ -27,12 +31,13 @@ async def register_ref_user(user_data: SUserAuth, referral_link: str):
 
 
 @router.post("/login")
-async def login_user(response: Response, user_data: SUserAuth):
+async def login_user(response: Response, user_data: SUserLogin):
     user = await authenticate_user(user_data.mail, user_data.password)
     if not user:
         raise IncorrectEmailOrPasswordException
     access_token = create_access_token({"sub": str(user.id)})
-    response.set_cookie("poc_access_token", access_token, httponly=True)
+    response.set_cookie("poc_access_token", access_token, httponly=True, secure=settings.SET_COOKIE_SECURE)
+    logging.info(f"User {user.username} logged in")
     return {"access_token": access_token}
 
 

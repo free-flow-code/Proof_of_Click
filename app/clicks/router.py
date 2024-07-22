@@ -3,8 +3,10 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import JSONResponse
 from json import JSONDecodeError
 
-from app.game_items.router import get_user_items
+from app.users.models import Users
+from app.users.dependencies import get_current_user
 from app.exceptions import ClicksDataException
+from app.redis import get_redis
 
 router = APIRouter(
     prefix="/clicks",
@@ -13,7 +15,7 @@ router = APIRouter(
 
 
 @router.post("")
-async def receive_clicks(request: Request):
+async def receive_clicks(request: Request, user: Users = Depends(get_current_user), redis=Depends(get_redis)):
     try:
         data = await request.json()
         clicks = data.get("clicks")
@@ -25,6 +27,10 @@ async def receive_clicks(request: Request):
         return
 
     # Обработка кликов
-    print(f"Received {rounded_clicks} clicks")
-
-    return JSONResponse(content={"status": "accepted"})
+    current_clicks = await redis.get(f"{user.id}")
+    if current_clicks is None:
+        current_clicks = 0.0
+    else:
+        current_clicks = round(float(current_clicks), 3)
+    new_total_clicks = current_clicks + rounded_clicks
+    await redis.set(f"{user.id}", new_total_clicks)

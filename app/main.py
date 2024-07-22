@@ -2,8 +2,12 @@ import logging
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from contextlib import asynccontextmanager
 
 from app.config import settings
+from app.redis import redis
 from app.game_items.router import router as items_router
 from app.users.router import router as users_router
 from app.improvements.router import router as improvements_router
@@ -18,9 +22,20 @@ logging.basicConfig(
         filemode='w',
         format='%(asctime)s %(levelname)s %(message)s'
     )
-logging.info("Service started")
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.info("Service started")
+    FastAPICache.init(RedisBackend(redis), prefix="cache")
+    yield
+    logging.info("Service exited")
+
+app = FastAPI(
+    title="Proof of Click",
+    lifespan=lifespan,
+    )
+
 app.mount("/static", StaticFiles(directory="app/static"), "static")
 
 app.include_router(users_router)
