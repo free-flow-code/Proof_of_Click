@@ -56,3 +56,8 @@ class ObjectNotFoundException(PoCException):
 class ClicksDataException(PoCException):
     status_code = status.HTTP_400_BAD_REQUEST
     detail = "Invalid data"
+
+
+class InternalServerError(PoCException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    detail = "We apologize. The server is in trouble. Try later"

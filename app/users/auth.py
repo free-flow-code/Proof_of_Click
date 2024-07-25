@@ -13,7 +13,7 @@ from app.exceptions import UsernameAlreadyExistsException, EmailAlreadyExistExce
 
 os.environ["PASSLIB_BUILTIN_BCRYPT"] = "enabled"
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes="sha256_crypt", deprecated="auto")
 
 
 def get_password_hash(password: str) -> str:

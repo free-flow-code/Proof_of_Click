@@ -14,3 +14,9 @@ class SUserLogin(BaseModel):
 
     mail: EmailStr
     password: str
+
+
+class SRestorePassword(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    mail: EmailStr

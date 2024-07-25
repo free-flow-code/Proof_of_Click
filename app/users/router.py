@@ -1,9 +1,9 @@
 import logging
 
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response, Depends, HTTPException, status
 
 from app.config import settings
-from app.users.schemas import SUserAuth, SUserLogin
+from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
 from app.users.models import Users
 from app.users.dao import UsersDAO
 from app.users.auth import authenticate_user, add_user, create_access_token
@@ -39,6 +39,18 @@ async def login_user(response: Response, user_data: SUserLogin):
     response.set_cookie("poc_access_token", access_token, httponly=True, secure=settings.SET_COOKIE_SECURE)
     logging.info(f"User {user.username} logged in")
     return {"access_token": access_token}
+
+
+@router.post("/restore_password")
+async def restore_password(user_data: SRestorePassword):
+    print(user_data.mail)
+    is_user = await UsersDAO.find_one_or_none(mail=user_data.mail)
+    if not is_user:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Email not found"
+        )
+    return {"detail": f"Password send to email {user_data.mail}"}
 
 
 @router.post("/logout")
