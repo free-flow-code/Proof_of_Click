@@ -1,9 +1,9 @@
-import os
+import logging
 import string
 import random
 from jose import jwt
 from datetime import datetime, timedelta
-from passlib.context import CryptContext
+from cryptography.fernet import Fernet
 from pydantic import EmailStr
 
 from app.config import settings
@@ -11,23 +11,33 @@ from app.users.dao import UsersDAO
 from app.users.schemas import SUserAuth
 from app.exceptions import UsernameAlreadyExistsException, EmailAlreadyExistException
 
-os.environ["PASSLIB_BUILTIN_BCRYPT"] = "enabled"
-
-pwd_context = CryptContext(schemes="sha256_crypt", deprecated="auto")
+key = settings.ENCRYPTION_KEY
+cipher_suite = Fernet(key)
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    encrypted_password = cipher_suite.encrypt(password.encode())
+    return encrypted_password.decode()
+
+
+def get_password_from_hash(encrypted_password: str) -> str:
+    decrypted_password = cipher_suite.decrypt(encrypted_password.encode())
+    return decrypted_password.decode()
 
 
 def verify_password(plain_password, hashed_password) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        decrypted_password = get_password_from_hash(hashed_password)
+        return plain_password == decrypted_password
+    except Exception as e:
+        logging.info(f"Ошибка при расшифровке пароля: {e}")
+        return False
 
 
 def generate_referral_link():
-    characters = string.ascii_letters + string.digits
+    characters = string.ascii_letters + string.digits  # TODO replace by uuid4, without url, only code
     random_string = ''.join(random.choice(characters) for _ in range(12))
-    return f'{settings.DOMAIN}/auth/register/{random_string}'
+    return f'{settings.BACKEND_DOMAIN}/auth/register/{random_string}'
 
 
 def create_access_token(data: dict) -> str:
@@ -61,10 +71,10 @@ async def add_user(user_data: SUserAuth, referral_link: str = None):
     if not referral_link:
         referer = None
     else:
-        referer = await UsersDAO.find_one_or_none(referral_link=f'{settings.DOMAIN}/auth/register/{referral_link}')
+        referer = await UsersDAO.find_one_or_none(referral_link=f'{settings.BACKEND_DOMAIN}/auth/register/{referral_link}')  # TODO replace link by uuid4 code
 
     hashed_password = get_password_hash(user_data.password)
-    await UsersDAO.add(
+    created_user = await UsersDAO.add(
         username=user_data.username,
         mail=user_data.mail,
         hash_password=hashed_password,
@@ -75,3 +85,4 @@ async def add_user(user_data: SUserAuth, referral_link: str = None):
         telegram_id=None,
         last_update_time=None
     )
+    return created_user

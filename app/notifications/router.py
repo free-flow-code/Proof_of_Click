@@ -37,7 +37,7 @@ async def add_notification(
 
 
 @router.delete("/{notification_id}")
-async def delete_lot(notification_id: int, user: Users = Depends(get_current_user)):
+async def delete_notification(notification_id: int, user: Users = Depends(get_current_user)):
     if user.role.value != "admin":
         raise AccessDeniedException
 

@@ -19,7 +19,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
       });
 
       if (response.ok) {
-        description.innerText = 'В течение нескольких минут на ваш email придет сообщение с паролем.';
+        description.innerText = 'Within a few minutes, a message with a password will be sent to your email. If you havent received the letter, check your spam folder.';
         description.style.marginTop = '2vh';
         description.style.marginBottom = '2vh';
         icon.style.display = 'none';

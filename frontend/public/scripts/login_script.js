@@ -73,3 +73,23 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     submitButton.disabled = false;
   }
 });
+
+function switchTab(tab) {
+  const signInTab = document.getElementById('signInTab');
+  const signUpTab = document.getElementById('signUpTab');
+  const usernameField = document.getElementById('username');
+
+  if (tab === 'signIn') {
+    signInTab.classList.add('active');
+    signInTab.classList.remove('inactive');
+    signUpTab.classList.add('inactive');
+    signUpTab.classList.remove('active');
+    usernameField.classList.add('hidden');
+  } else if (tab === 'signUp') {
+    signInTab.classList.add('inactive');
+    signInTab.classList.remove('active');
+    signUpTab.classList.add('active');
+    signUpTab.classList.remove('inactive');
+    usernameField.classList.remove('hidden');
+  }
+}

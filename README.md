@@ -49,35 +49,42 @@ DB_PORT=5432
 DB_USER=postgres
 DB_PASS=root
 DB_NAME=postgres
-DOMAIN=http://mi-site.com
-JWT_SECRET_KEY=asdlajsdasASDASD
+FRONTEND_DOMAIN=http://127.0.0.1:3000
+BACKEND_DOMAIN=http://127.0.0.1:8000
+ENCRYPTION_KEY=s3XUjyntOk0o=
+JWT_SECRET_KEY=asdlajsdasASDASD=
 ALGORITHM=HS256
-ORIGINS=["localhost:8000", "127.0.0.1:8000"]
+ORIGINS=["http://127.0.0.1:8000", "http://127.0.0.1:3000"]
+SET_COOKIE_SECURE=False
 REDIS_HOST=localhost
 REDIS_PORT=6379
-SMTP_HOST = smtp.mail.com
-SMTP_USER = mymail@mail.com
+SMTP_HOST=smtp.mail.com
+SMTP_USER=mymail@mail.com
 SMTP_PASSWORD=password
 SMTP_PORT=465
 ```
 
 где:
 
-- 'DB_HOST' адрес БД, по умолчанию 'localhost'
-- 'DB_PORT' порт БД, по умолчанию '5432'
-- 'DB_USER' пользователь БД, по умолчанию 'postgres'
-- 'DB_PASS' пароль БД, по умолчанию 'root'
-- 'DB_NAME' название БД, по умолчанию 'postgres'
-- 'DOMAIN' доменное имя сайта, нужно для реферальной ссылки
-- 'JWT_SECRET_KEY' ключ для генерации JWT-токена
-- 'ALGORITHM' алгоритм для шифрования JWT-токена, по умолчанию 'HS256'
-- 'ORIGINS' список разрешенных адресов для работы с API, по умолчанию '["localhost:8000", "127.0.0.1:8000"]'
-- 'REDIS_HOST' адрес redis, по умолчанию 'localhost'
-- 'REDIS_PORT' порт redis, по умолчанию '6379'
-- SMTP_HOST хост почтового сервера, нет значения по умолчанию
-- SMTP_USER адрес почты, для подключения к серверу, нет значения по умолчанию
-- SMTP_PASSWORD пароль, для подключения к почтовому серверу, нет значения по умолчанию
-- SMTP_PORT порт почтового сервера, нет значения по умолчанию
+- `DB_HOST` адрес БД, по умолчанию 'localhost'
+- `DB_PORT` порт БД, по умолчанию '5432'
+- `DB_USER` пользователь БД, по умолчанию 'postgres'
+- `DB_PASS` пароль БД, по умолчанию 'root'
+- `DB_NAME` название БД, по умолчанию 'postgres'
+- `FRONTEND_DOMAIN` по умолчанию http://127.0.0.1:3000
+- `BACKEND_DOMAIN` по умолчанию http://127.0.0.1:8000
+- `ENCRYPTION_KEY` ключ для шифрования паролей пользователей, нет значения по умолчанию
+- `JWT_SECRET_KEY` ключ для генерации JWT-токена, нет значения по умолчанию
+- `ALGORITHM` алгоритм для шифрования JWT-токена, по умолчанию 'HS256'
+- `JWT_TOKEN_DELAY_MINUTES` время жизни JWT-токена в минутах, по умолчанию 30
+- `ORIGINS` список разрешенных адресов для работы с API, по умолчанию '["http://127.0.0.1:8000", "http://127.0.0.1:3000"]'
+- `SET_COOKIE_SECURE` по умолчанию False, установите True, если используете HTTPS
+- `REDIS_HOST` адрес redis, по умолчанию 'localhost'
+- `REDIS_PORT` порт redis, по умолчанию '6379'
+- `SMTP_HOST` хост почтового сервера, нет значения по умолчанию
+- `SMTP_USER` адрес почты, для подключения к серверу, нет значения по умолчанию
+- `SMTP_PASSWORD` пароль, для подключения к почтовому серверу, нет значения по умолчанию
+- `SMTP_PORT` порт почтового сервера, нет значения по умолчанию
 
 Примените миграции командой:
 

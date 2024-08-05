@@ -1,12 +1,12 @@
 import logging
-from fastapi import APIRouter, Request, Depends, HTTPException, status
+from fastapi import APIRouter, Request, Depends
 from json import JSONDecodeError
 from redis.exceptions import ConnectionError
 
 from app.users.models import Users
 from app.users.dependencies import get_current_user
 from app.exceptions import ClicksDataException
-from app.redis import get_redis
+from app.redis_init import get_redis
 from app.exceptions import InternalServerError
 
 router = APIRouter(

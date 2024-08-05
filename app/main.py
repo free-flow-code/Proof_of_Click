@@ -7,7 +7,7 @@ from fastapi_cache.backends.redis import RedisBackend
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.redis import redis
+from app.redis_init import redis_client, init_redis
 from app.game_items.router import router as items_router
 from app.users.router import router as users_router
 from app.improvements.router import router as improvements_router
@@ -27,7 +27,9 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logging.info("Service started")
-    FastAPICache.init(RedisBackend(redis), prefix="cache")
+    global redis_client
+    redis_client = await init_redis()
+    FastAPICache.init(RedisBackend(redis_client), prefix="cache")
     yield
     logging.info("Service exited")
 

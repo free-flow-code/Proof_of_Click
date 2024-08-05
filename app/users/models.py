@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Float, Enum, JSON
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Float, Enum, JSON, Boolean
 from sqlalchemy.orm import relationship
 import enum
+from random import randint
 
 from app.database import Base
 from app.improvements.models import Improvements
@@ -30,6 +31,8 @@ class Users(Base):
     telegram_id = Column(Integer)
     last_update_time = Column(Date)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.user)
+    mail_confirm_code = Column(String, default=str(randint(100000, 999999)))
+    is_confirm_mail = Column(Boolean, default=False)
 
     referred_by = relationship("Users", remote_side=[id], backref="referrals")  # получить список пользователей, привлеченных данным пользователем - user.referrals
     boosts = relationship("Improvements", backref="user", cascade="all, delete-orphan")

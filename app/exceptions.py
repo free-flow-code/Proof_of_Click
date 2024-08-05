@@ -61,3 +61,8 @@ class ClicksDataException(PoCException):
 class InternalServerError(PoCException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     detail = "We apologize. The server is in trouble. Try later"
+
+
+class IncorrectEmailCodeException(PoCException):
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Incorrect email code"

@@ -15,7 +15,9 @@ class Settings(BaseSettings):
     DB_PASS: str = "root"
     DB_NAME: str = "mydb"
 
-    DOMAIN: str
+    BACKEND_DOMAIN: str = "http://127.0.0.1:8000"
+    FRONTEND_DOMAIN: str = "http://127.0.0.1:3000"
+    ENCRYPTION_KEY: str
     JWT_SECRET_KEY: str
     ALGORITHM: str = "HS256"
     JWT_TOKEN_DELAY_MINUTES: int = 30
