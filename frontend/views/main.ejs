@@ -1,54 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Play:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/index_styles.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="<%= pageStyles %>"> <!-- Специфичные для страницы стили -->
   <title>Proof of Click</title>
 </head>
 <body>
   <div id="mainContainer">
-    <div id="counter">
-      Blocks: 0.000
-      <div id="mineSpeed">
-        0 blocks/sec.
-      </div>
-      <div class="error-message" id="formErrorMessage"></div>
-    </div>
-    <div id="auraContainer">
-      <div id="clickImageContainer">
-        <img id="clickImage" src="cube.png" alt="Mine!">
-      </div>
-    </div>
+    <%- content %>
     <div id="menu">
       <div class="menu-item">
-        <button>
-          <img src="icons/home.svg" alt="Главная">
+        <button onclick="window.location.href='/'">
+          <img src="/icons/home.svg" alt="Главная">
           <div class="menu-item-text">Главная</div>
         </button>
       </div>
       <div class="menu-item">
-        <button>
-          <img src="icons/leaderboard.svg" alt="Рейтинг">
+        <button onclick="window.location.href='/leaderboard'">
+          <img src="/icons/leaderboard.svg" alt="Рейтинг">
           <div class="menu-item-text">Рейтинг</div>
         </button>
       </div>
       <div class="menu-item">
-        <button>
-          <img src="icons/boosts.svg" alt="Бусты">
+        <button onclick="window.location.href='/boosts'">
+          <img src="/icons/boosts.svg" alt="Бусты">
           <div class="menu-item-text">Бусты</div>
         </button>
       </div>
       <div class="menu-item">
-        <button>
-          <img src="icons/profile.svg" alt="Профиль">
+        <button onclick="window.location.href='/profile'">
+          <img src="/icons/profile.svg" alt="Профиль">
           <div class="menu-item-text">Профиль</div>
         </button>
       </div>
     </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="scripts/index_script.js"></script>
+  <script src="<%= pageScript %>"></script>
 </body>
 </html>

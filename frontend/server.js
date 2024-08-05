@@ -9,7 +9,34 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+// Настройка EJS как шаблонизатора
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Обслуживание статических файлов
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Маршруты для EJS страниц
+app.get('/', (req, res) => {
+  res.render('pages/index');
+});
+
+app.get('/leaderboard', (req, res) => {
+  res.render('pages/leaderboard');
+});
+
+app.get('/boosts', (req, res) => {
+  res.render('pages/boosts');
+});
+
+app.get('/profile', (req, res) => {
+  res.render('pages/profile');
+});
+
+// Обработка статических страниц, таких как login.html
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
 
 io.on('connection', (socket) => {
   console.log('A user connected');

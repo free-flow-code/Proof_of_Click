@@ -1,0 +1,113 @@
+#auraContainer{
+  display: flex;
+  background-image: url("../cube-areo.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  justify-content: center;
+  align-items: center;
+  width:50vh;
+  height: 50vh;
+  position: absolute;
+  z-index: 0;
+}
+#clickImageContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#clickImage {
+  width: 19vh;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.1s ease-in-out;
+}
+#clickImage:active {
+  transform: scale(0.95);
+}
+#clickImageContainer::before {
+  content: '';
+  position: absolute;
+  width: 50vh;
+  height: 50vh;
+  z-index: 1;
+}
+#counter {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  top: 2vh;
+  font-size: 2.5vh;
+  font-weight: bold;
+}
+#mineSpeed {
+  justify-content: center;
+  align-content: center;
+  font-size: 2vh;
+  font-weight: 300;
+}
+.plusOne {
+  position: absolute;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  animation: floatUp 1s ease-out forwards;
+  z-index: 2;
+}
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-170px);
+  }
+}
+.error {
+  color: red;
+  margin: 0 5vh 1vh 5vh; /* top | right | bottom | left */
+  justify-content: center;
+  align-content: center;
+  font-size: 2.8vh;
+}
+.error-message {
+  display: none;
+  color: red;
+  margin: 0 5vh 1vh 5vh;
+  align-content: center;
+  text-align: center;
+  font-size: 2.8vh;
+}
+
+@media (max-width: 500px) {
+  #counter {
+    font-size: 2.8vh;
+  }
+  #mineSpeed {
+    font-size: 2vh;
+  }
+  .error-message {
+    font-size: 2.8vh;
+  }
+}
+
+@media (max-width: 400px) {
+  #auraContainer {
+    width: 40vh;
+    height: 40vh;
+  }
+  #counter {
+    font-size: 2.5vh;
+  }
+  #mineSpeed {
+    font-size: 2vh;
+  }
+  .error-message {
+    font-size: 2.5vh;
+  }
+}
