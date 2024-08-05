@@ -29,9 +29,14 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     return;
   }
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const referralLink = urlParams.get('ref');
+
   const url = activeTab === 'signInTab'
     ? 'http://127.0.0.1:8000/auth/login'
-    : 'http://127.0.0.1:8000/auth/register';
+    : referralLink
+      ? `http://127.0.0.1:8000/auth/register/${referralLink}`
+      : 'http://127.0.0.1:8000/auth/register';
 
   const payload = activeTab === 'signInTab'
     ? { mail: login, password: password }
@@ -92,4 +97,10 @@ function switchTab(tab) {
     signUpTab.classList.remove('inactive');
     usernameField.classList.remove('hidden');
   }
+}
+
+function showError(message) {
+  const formErrorMessage = document.getElementById('formErrorMessage');
+  formErrorMessage.textContent = message;
+  formErrorMessage.style.display = 'block';
 }

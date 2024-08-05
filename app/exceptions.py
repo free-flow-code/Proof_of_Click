@@ -11,32 +11,32 @@ class PoCException(HTTPException):
 
 class UsernameAlreadyExistsException(PoCException):
     status_code = status.HTTP_409_CONFLICT
-    detail = "Username уже существует."
+    detail = "Username already exists."
 
 
 class EmailAlreadyExistException(PoCException):
     status_code = status.HTTP_409_CONFLICT
-    detail = "Email уже существует."
+    detail = "Email already exists."
 
 
 class IncorrectEmailOrPasswordException(PoCException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Неверная почта или пароль."
+    detail = "Incorrect email or password."
 
 
 class TokenExpiredException(PoCException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Токен истек."
+    detail = "Token expired."
 
 
 class TokenAbsentException(PoCException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Токен отсутствует."
+    detail = "Token is missing."
 
 
 class IncorrectTokenFormatException(PoCException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = "Неверный формат токена."
+    detail = "Invalid token format."
 
 
 class UserIsNotPresentException(PoCException):

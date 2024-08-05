@@ -33,7 +33,7 @@ async def register_user(response: Response, user_data: SUserAuth):
 
 @router.post("/register/{referral_link}")
 async def register_ref_user(user_data: SUserAuth, referral_link: str):
-    await add_user(user_data, referral_link)  # TODO add login?
+    await add_user(user_data, referral_link)
     return {"detail": "User register successfully"}
 
 

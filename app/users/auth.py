@@ -35,9 +35,9 @@ def verify_password(plain_password, hashed_password) -> bool:
 
 
 def generate_referral_link():
-    characters = string.ascii_letters + string.digits  # TODO replace by uuid4, without url, only code
+    characters = string.ascii_letters + string.digits
     random_string = ''.join(random.choice(characters) for _ in range(12))
-    return f'{settings.BACKEND_DOMAIN}/auth/register/{random_string}'
+    return f'{settings.FRONTEND_DOMAIN}/login.html?ref={random_string}'
 
 
 def create_access_token(data: dict) -> str:
@@ -71,7 +71,7 @@ async def add_user(user_data: SUserAuth, referral_link: str = None):
     if not referral_link:
         referer = None
     else:
-        referer = await UsersDAO.find_one_or_none(referral_link=f'{settings.BACKEND_DOMAIN}/auth/register/{referral_link}')  # TODO replace link by uuid4 code
+        referer = await UsersDAO.find_one_or_none(referral_link=f'{settings.FRONTEND_DOMAIN}/login.html?ref={referral_link}')
 
     hashed_password = get_password_hash(user_data.password)
     created_user = await UsersDAO.add(
