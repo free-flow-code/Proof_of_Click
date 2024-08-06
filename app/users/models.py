@@ -34,7 +34,7 @@ class Users(Base):
     mail_confirm_code = Column(String, default=str(randint(100000, 999999)))
     is_confirm_mail = Column(Boolean, default=False)
 
-    referred_by = relationship("Users", remote_side=[id], backref="referrals")  # получить список пользователей, привлеченных данным пользователем - user.referrals
+    referred_by = relationship("Users", remote_side=[id], backref="referrals")
     boosts = relationship("Improvements", backref="user", cascade="all, delete-orphan")
     game_items = relationship("GameItems", backref="user", cascade="all, delete-orphan")
     notifications = relationship("Notifications", backref="user", cascade="all, delete-orphan")

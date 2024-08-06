@@ -1,0 +1,44 @@
+[
+  {
+    "polymorphic_block": {
+      "name_ru": "Полиморфный блок",
+      "name_en": "Polymorphic block",
+      "description_ru": "Каждый добытый блок может оказаться полиморфным с вероятностью один на миллиард кликов. Всего таких существует 10 000 шт.",
+      "description_en": "Each mined block has a probability of being polymorphic with one in a billion clicks. There are 10,000 of these.",
+      "mining_probability": 0.000000001,
+      "maximum_amount": 10000
+    },
+    "quantum_block": {
+      "name_ru": "Квантовый блок",
+      "name_en": "Quantum block",
+      "description_ru": "Каждый добытый блок может оказаться квантовым с вероятностью один на триллион кликов. Всего таких существует 1000 шт.",
+      "description_en": "Each mined block has a probability of being quantum with one in a trillion clicks. There are only 1000 of them.",
+      "mining_probability": 0.000000000001,
+      "maximum_amount": 1000
+    },
+    "interdimensional_block": {
+      "name_ru": "Межпространственный блок",
+      "name_en": "Interdimensional block",
+      "description_ru": "Каждый добытый блок может оказаться блоком из другого измерения с вероятностью один на квадриллион кликов. Всего таких существует 100 шт.",
+      "description_en": "Each mined block has a one in a quadrillion click chance of being a block from another dimension. There are 100 of these in existence.",
+      "mining_probability": 0.000000000001,
+      "maximum_amount": 100
+    },
+    "black_cat": {
+      "name_ru": "Черный кот",
+      "name_en": "Black cat",
+      "description_ru": "Невероятный кот! И невероятная удача! Поздравляем!",
+      "description_en": "Incredible cat! And incredible luck! Congratulations!",
+      "mining_probability": 0.000000000007,
+      "maximum_amount": 1
+    },
+    "white_cat": {
+      "name_ru": "Белый кот",
+      "name_en": "White cat",
+      "description_ru": "Невероятный кот! И невероятная удача! Поздравляем!",
+      "description_en": "Incredible cat! And incredible luck! Congratulations!",
+      "mining_probability": 0.000000000007,
+      "maximum_amount": 1
+    }
+  }
+]
