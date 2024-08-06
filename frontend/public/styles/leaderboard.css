@@ -1,0 +1,76 @@
+/* leaderboard.css */
+
+/* Spinning animation for the spinner */
+.spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1vh solid #f3f3f3; /* Light grey */
+  border-top: 1vh solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 5vh;
+  height: 5vh;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Styling for leaderboard container */
+#leaderboardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-top: 2vh;
+  margin-bottom: 10vh;
+  width: 80%;
+  overflow-y: auto;
+  flex-grow: 1;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+#leaderboardContainer::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.leader {
+  background-color: rgba(0, 2, 15, 0.7);
+  border: 1px solid #3ba3e3;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 2px;
+  width: 80%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leader div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.leader .rank {
+  width: 20%;
+  text-align: center;
+}
+
+.leader .user-info, .leader .balance-info {
+  width: 40%;
+}
+
+.itemTitle {
+  font-size: 0.8em;
+  color: #bbb;
+}
+
+.itemContent {
+  font-size: 1.2em;
+  color: #fff;
+}

@@ -16,7 +16,7 @@ body {
 #mainContainer {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   width: 35%;
   height: 85%;
@@ -29,6 +29,7 @@ body {
   transform: translate(-50%, -50%);
   border-radius: 15px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
 }
 #menu {
   position: absolute;

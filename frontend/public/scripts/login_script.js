@@ -59,7 +59,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     if (response.ok) {
       const data = await response.json();
       console.log('Request successful:', data);
-      window.location.href = 'index.html';
+      window.location.href = '/';
     } else {
       const errorData = await response.json();
       console.error('Request failed:', errorData);

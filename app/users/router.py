@@ -87,6 +87,11 @@ async def get_current_user_me(current_user: Users = Depends(get_current_user)):
     return user
 
 
+@router.get("/leaders")
+async def get_leaders(current_user: Users = Depends(get_current_user)):
+    return await UsersDAO.get_top_100_users()
+
+
 @router.delete("/{user_id}")
 async def delete_user(user_id: int, current_user: Users = Depends(get_current_user)):
     if current_user.role.value != "admin":
