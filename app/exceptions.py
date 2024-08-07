@@ -9,6 +9,11 @@ class PoCException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail)
 
 
+class BadRequestException(PoCException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Incorrect data requested."
+
+
 class UsernameAlreadyExistsException(PoCException):
     status_code = status.HTTP_409_CONFLICT
     detail = "Username already exists."
@@ -66,3 +71,8 @@ class InternalServerError(PoCException):
 class IncorrectEmailCodeException(PoCException):
     status_code = status.HTTP_409_CONFLICT
     detail = "Incorrect email code"
+
+
+class NotEnoughFundsException(PoCException):
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Not enough funds."  # недостаточно средств

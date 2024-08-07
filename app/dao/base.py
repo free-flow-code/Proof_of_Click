@@ -47,15 +47,15 @@ class BaseDAO:
             query = insert(cls.model).values(**data).returning(cls.model.__table__.columns)
             result = await session.execute(query)
             await session.commit()
-            created_object = result.mappings().first()
-            return created_object
+            return result.mappings().first()
 
     @classmethod
     async def edit(cls, model_id: int, **data):
         async with async_session_maker() as session:
-            query = update(cls.model).where(cls.model.id == model_id).values(**data)
-            await session.execute(query)
+            query = update(cls.model).where(cls.model.id == model_id).values(**data).returning(cls.model.__table__.columns)
+            result = await session.execute(query)
             await session.commit()
+            return result.mappings().first()
 
     @classmethod
     async def delete(cls, user_id: int):

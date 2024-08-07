@@ -6,17 +6,22 @@ from app.config import settings
 
 async def load_boosts(redis):
     pipe = redis.pipeline()
+    name_boosts = []
     with open("app/boosts.json", "r", encoding="utf-8") as file:
         boosts = json.loads(file.read())
         for boost in boosts:
             for key, value in boost.items():
+                name_boosts.append(key)
                 pipe.set(f"{key}_name_ru", value["name_ru"])
                 pipe.set(f"{key}_name_en", value["name_en"])
                 pipe.set(f"{key}_description_ru", value["description_ru"])
                 pipe.set(f"{key}_description_en", value["description_en"])
-                if key == "levels":
-                    for level, details in value.items():
-                        pipe.set(f"{key}_level_{level}", str(details))
+                levels_count = 0
+                for level, details in value["levels"].items():
+                    pipe.set(f"{key}_level_{level}", str(details))
+                    levels_count += 1
+                pipe.set(f"{key}_max_levels", levels_count)
+    pipe.set("name_boosts", str(name_boosts))
     await pipe.execute()
     logging.info("Boosts loads successful to redis")
 

@@ -11,7 +11,7 @@ class Improvements(Base):
     name = Column(String, nullable=False)
     purchase_date = Column(Date, nullable=False)
     level = Column(Integer, nullable=False)
-    redis_key = Column(String, nullable=False)
+    redis_key = Column(String, nullable=False)  # TODO delete?
     image_id = Column(Integer)
 
     def __str__(self):

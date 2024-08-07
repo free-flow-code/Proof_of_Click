@@ -25,9 +25,9 @@ class Users(Base):
     referral_link = Column(String, nullable=False)
     referer = Column(ForeignKey("users.id", ondelete="SET NULL"))
     blocks_balance = Column(Float, default=0.000)  # Пересчитывать в Celery каждые 10 сек., промежуточные данные хранить в Redis, итоговые записывать в БД
-    blocks_per_sec = Column(Float, default=0.000)  # Пересчитывать каждый раз при покупке улучшений
-    blocks_per_click = Column(Float, default=0.001)  # Пересчитывать каждый раз при покупке умножителя
-    improvements = Column(JSON, default=[])
+    clicks_per_sec = Column(Float, default=0.000)  # Пересчитывать каждый раз при покупке autoclicker
+    blocks_per_click = Column(Float, default=0.001)  # Пересчитывать каждый раз при покупке multiplier
+    improvements = Column(JSON, default=[])  # TODO удалить?
     telegram_id = Column(Integer)
     last_update_time = Column(Date)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.user)
