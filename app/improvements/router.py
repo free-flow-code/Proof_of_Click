@@ -1,15 +1,16 @@
 import ast
-import logging
-
 from fastapi import APIRouter, Depends
 from typing import Optional
 from datetime import date
 
 from app.improvements.dao import ImprovementsDAO
-from app.improvements.schemas import SImprovements
 from app.users.models import Users
 from app.users.dependencies import get_current_user
-from app.improvements.processed_functions import get_level_purchased_boost, recalculate_user_data
+from app.improvements.processed_functions import (
+    get_level_purchased_boost,
+    recalculate_user_data,
+    get_boost_details
+)
 from app.redis_init import get_redis
 from app.exceptions import (
     AccessDeniedException,
@@ -25,23 +26,57 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_user_boosts(user: Users = Depends(get_current_user)) -> list[SImprovements]:
-    return await ImprovementsDAO.find_by_user_id(user.id)
+async def get_user_boosts(user: Users = Depends(get_current_user), redis=Depends(get_redis)):
+    user_boosts = await ImprovementsDAO.find_by_user_id(user.id)
+    data = {}
+    boosts = []
+    if user_boosts:
+        for user_boost in user_boosts:
+            boost = dict(user_boost.items())
+            boost[f"{boost['name']}"] = await get_boost_details(
+                f"{boost['name']}",
+                redis,
+                boost_current_lvl=boost["level"]
+            )
+
+            keys_to_remove = ["id", "user_id", "name", "purchase_date", "level", "redis_key", "image_id"]
+            [boost.pop(key, None) for key in keys_to_remove]
+            boosts.append(boost)
+    data["boosts"] = boosts
+
+    user_boosts_names = set()
+    for boost in data["boosts"]:
+        boost_name = tuple(boost.keys())
+        user_boosts_names.add(*boost_name)
+    all_boosts = await redis.get("name_boosts")
+    all_boosts_names = set(ast.literal_eval(all_boosts))
+    not_user_boosts_names = all_boosts_names - user_boosts_names
+
+    for boost_name in not_user_boosts_names:
+        boost = dict()
+        boost[f"{boost_name}"] = await get_boost_details(boost_name, redis)
+        data["boosts"].append(boost)
+
+    # TODO recalculate user balance
+    data["boosts"] = sorted(data["boosts"], key=lambda d: list(d.keys())[0])
+    data["user_balance"] = user.blocks_balance
+    data["clicks_per_sec"] = user.clicks_per_sec
+    data["blocks_per_click"] = user.blocks_per_click
+    return data
 
 
-@router.get("buy/{boost_name}")
-async def buy_boost(boost_name: str, user: Users = Depends(get_current_user), redis=Depends(get_redis)):
-    name_boosts = await redis.get("name_boosts")
-    if boost_name not in ast.literal_eval(name_boosts):
+@router.get("/upgrade/{boost_name}")
+async def upgrade_boost(boost_name: str, user: Users = Depends(get_current_user), redis=Depends(get_redis)):
+    all_boosts = await redis.get("name_boosts")
+    if boost_name not in ast.literal_eval(all_boosts):
         raise BadRequestException
     # получить уровень покупаемого улучшения для этого юзера
     level_purchased_boost, boost_id = await get_level_purchased_boost(user.id, boost_name, redis)
 
     # сравнить стоимость улучшения с текущим балансом юзера, добавить/изменить boost
-    boost_details_str = await redis.get(f"{boost_name}_level_{level_purchased_boost}")
-    boost_details = ast.literal_eval(boost_details_str)
-    boost_price = boost_details[0]
-    if user.blocks_balance >= boost_price:
+    boost_value = await redis.get(f"{boost_name}_level_{level_purchased_boost}_value")
+    boost_price = await redis.get(f"{boost_name}_level_{level_purchased_boost}_price")
+    if user.blocks_balance >= float(boost_price):
         boost_data = {
             "user_id": user.id,
             "name": boost_name,
@@ -54,10 +89,15 @@ async def buy_boost(boost_name: str, user: Users = Depends(get_current_user), re
         else:
             boost = await ImprovementsDAO.edit(boost_id, **boost_data)
         # пересчитать blocks_balance, blocks_per_sec, blocks_per_click, boost.level
-        await recalculate_user_data(user, boost_name, boost_details)
+        await recalculate_user_data(user, boost_name, float(boost_value))
         return boost
     else:
         raise NotEnoughFundsException
+
+
+@router.get("/buy/{boost_name}")
+async def buy_boost(boost_name: str, user: Users = Depends(get_current_user), redis=Depends(get_redis)):
+    pass
 
 
 @router.get("/add_improvement")

@@ -16,9 +16,14 @@ async def load_boosts(redis):
                 pipe.set(f"{key}_name_en", value["name_en"])
                 pipe.set(f"{key}_description_ru", value["description_ru"])
                 pipe.set(f"{key}_description_en", value["description_en"])
+                pipe.set(f"{key}_characteristic_ru", value["characteristic_ru"])
+                pipe.set(f"{key}_characteristic_en", value["characteristic_en"])
+                pipe.set(f"{key}_usdt_price", value["usdt_price"])
+                pipe.set(f"{key}_image_id", value["image_id"])
                 levels_count = 0
                 for level, details in value["levels"].items():
-                    pipe.set(f"{key}_level_{level}", str(details))
+                    pipe.set(f"{key}_level_{level}_price", details[0])
+                    pipe.set(f"{key}_level_{level}_value", details[1])
                     levels_count += 1
                 pipe.set(f"{key}_max_levels", levels_count)
     pipe.set("name_boosts", str(name_boosts))
@@ -51,8 +56,6 @@ async def init_redis():
         )
         await redis_client.ping()
         logging.info("Redis connected.")
-        await load_boosts(redis_client)
-        await load_game_items(redis_client)
         return redis_client
     except r.exceptions.ConnectionError as err:
         logging.error(f"Redis connection error: {err}")

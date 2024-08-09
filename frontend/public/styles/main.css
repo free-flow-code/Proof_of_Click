@@ -91,25 +91,21 @@ transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
     width: 45%;
   }
 }
-
 @media (max-width: 1200px){
   #mainContainer {
     width: 70%;
   }
 }
-
 @media (max-width: 950px){
   #mainContainer {
     width: 90%;
   }
 }
-
 @media (max-width: 800px){
   #mainContainer {
     width: 100%;
   }
 }
-
 @media (max-width: 600px){
   body {
     width: 100%;
@@ -119,7 +115,6 @@ transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
     width: 100%;
   }
 }
-
 /* MEDIA HEIGHT */
 @media (max-height: 800px){
   #mainContainer {

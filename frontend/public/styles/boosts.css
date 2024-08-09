@@ -1,0 +1,211 @@
+#counter {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  top: 2vh;
+  font-size: 2.5vh;
+  font-weight: bold;
+}
+#counter span {
+  margin-left: 1vh;
+}
+.error {
+  color: red;
+  margin: 0 5vh 1vh 5vh; /* top | right | bottom | left */
+  justify-content: center;
+  align-content: center;
+  font-size: 2.5vh;
+}
+.error-message {
+  position: absolute;
+  top: 5vh;
+  display: none;
+  color: red;
+  margin: 0 5vh 1vh 5vh;
+  align-content: center;
+  text-align: center;
+  font-size: 2.5vh;
+}
+#boostsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+  margin-top: 9vh;
+  margin-bottom: 10vh;
+  overflow-y: auto;
+  flex-grow: 1;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+#boostsContainer::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+.boostCard {
+  background-color: rgba(0, 2, 15, 0.7);
+  border: 1px solid #3ba3e3;
+  border-radius: 8px;
+  padding: 1vh;
+  width: 80%;
+  margin-bottom: 2vh;
+  justify-content: space-between;
+  align-items: center;
+}
+.boostTitle {
+  display: inline-block;
+  width: 70%;
+  color: #cb904d;
+  font-size: 2.5vh;
+  font-weight: bold;
+}
+.boostLevel {
+  display: inline-block;
+  width: 30%;
+  color: #cb904d;
+  font-size: 2.5vh;
+  text-align: right;
+}
+.boostDescription {
+  width: 100%;
+  display: block;
+  font-size: 1.8vh;
+  padding: 1vh 0;
+  color: rgb(0, 114, 190);
+}
+.boostImageDetailsContainer {
+  display: flex;
+  align-items: flex-start;
+}
+.boostImage {
+  display: contents;
+  width: 30%;
+}
+.boostImage img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+.boostDetails {
+  width: 70%;
+  justify-content: flex-start;
+  margin-left: 0.5vh;
+}
+.boostCharacteristic {
+  display: flex;
+  width: 100%;
+  font-size: 2vh;
+  margin-bottom: 2vh;
+  justify-content: center;
+}
+.boostPrice {
+  display: flex;
+  width: 100%;
+  font-size: 2vh;
+  justify-content: space-between;
+  margin-top: 1vh;
+}
+.priceTitle, .priceValue, .priceCurrency {
+  display: inline-block;
+}
+.priceValue {
+  color: #8e94f2;
+}
+.boostProgressContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5vh;
+}
+.progressMinValue {
+  font-size: 2vh;
+  margin-right: 1vh;
+}
+.progressMaxValue {
+  font-size: 2vh;
+  margin-left: 1vh;
+}
+.boostProgress {
+  display: flex;
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 2vh;
+  background-color: #d5d5d5;
+  border-radius: 5px;
+}
+.boostProgressValue {
+  height: 100%;
+  background-color: green;
+  border-radius: 5px;
+}
+.boostNextLevelValue {
+  height: 100%;
+  background-color: #cb904d;
+  border-radius: 0 5px 5px 0;
+}
+.boostProgressMarkerValue {
+  position: absolute;
+  top: -1.7vh;
+  font-size: 1.5vh;
+  font-weight: 600;
+  color: green;
+}
+.boostProgressMarker {
+  width: 1vh;
+  height: 1vh;
+  background-color: white;
+  border-radius: 50%;
+}
+button {
+  width: 100%;
+  padding: 1vh 0;
+  margin: 1vh 0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 2vh;
+  color: white;
+}
+button:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+.upgradeBoost {
+  background-color: #272f92;
+}
+.upgradeBoost:not(:disabled):hover {
+  background-color: #171b54;
+}
+.buyBoost {
+  background-color: #0000ff;
+}
+.buyBoost:not(:disabled):hover {
+  background-color: #0000a1;
+}
+.buyBoost:active, .upgradeBoost:active {
+  -moz-transform: scale(0.95);
+  -webkit-transform: scale(0.95);
+  -o-transform: scale(0.95);
+  -ms-transform: scale(0.95);
+  transform: scale(0.95);
+}
+details {
+  padding: 0.5em 0.5em 0;
+}
+summary {
+  font-weight: bold;
+  margin: -0.5em -0.5em 0;
+  padding: 0.5em;
+}
+details[open] {
+  font-weight: 400;
+}
+details[open] summary {
+}
+/* MEDIA */
+@media (max-width: 500px) {
+  #boostsContainer {
+    width: 100%;
+  }
+}

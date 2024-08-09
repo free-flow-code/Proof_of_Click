@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 319 319">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke: url(#_Безымянный_градиент_1619);
+        stroke-width: 30px;
+      }
+
+      .cls-1, .cls-2 {
+        fill: none;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-3 {
+        fill: url(#_Безымянный_градиент_1278);
+      }
+
+      .cls-2 {
+        stroke: url(#_Безымянный_градиент_594);
+        stroke-width: 35px;
+      }
+    </style>
+    <radialGradient id="_Безымянный_градиент_1278" data-name="Безымянный градиент 1278" cx="159.5" cy="159.5" fx="159.5" fy="159.5" r="159.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset=".25" stop-color="#fcfcfd"/>
+      <stop offset=".41" stop-color="#f3f4fa"/>
+      <stop offset=".56" stop-color="#e4e7f4"/>
+      <stop offset=".68" stop-color="#ced4ec"/>
+      <stop offset=".8" stop-color="#b3bbe2"/>
+      <stop offset=".91" stop-color="#919dd5"/>
+      <stop offset="1" stop-color="#7281c9"/>
+    </radialGradient>
+    <linearGradient id="_Безымянный_градиент_1619" data-name="Безымянный градиент 1619" x1="66.77" y1="164.06" x2="251.71" y2="164.06" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b03b06"/>
+      <stop offset=".09" stop-color="#a9390f"/>
+      <stop offset=".23" stop-color="#973528"/>
+      <stop offset=".41" stop-color="#7a2f51"/>
+      <stop offset=".62" stop-color="#52268a"/>
+      <stop offset=".86" stop-color="#1f1bd1"/>
+      <stop offset="1" stop-color="#0015ff"/>
+    </linearGradient>
+    <linearGradient id="_Безымянный_градиент_594" data-name="Безымянный градиент 594" x1="85.2" y1="84.94" x2="232.1" y2="231.84" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#015cff"/>
+      <stop offset=".29" stop-color="#003dff"/>
+      <stop offset=".76" stop-color="#01f"/>
+      <stop offset="1" stop-color="blue"/>
+    </linearGradient>
+  </defs>
+  <g id="_Слой_2" data-name="Слой 2">
+    <rect class="cls-3" width="319" height="319"/>
+  </g>
+  <g id="_Слой_1" data-name="Слой 1">
+    <polyline class="cls-1" points="241.08 117.68 159.19 199.86 77.31 118.99"/>
+    <polygon class="cls-2" points="240.77 198.08 240.77 118.45 158.89 36 77 117.89 77 199.39 158.89 280.26 240.77 198.08"/>
+  </g>
+</svg>

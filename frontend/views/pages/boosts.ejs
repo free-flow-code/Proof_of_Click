@@ -1,4 +1,11 @@
-<%- include('../main') %>
-<% body %>
-
-<% /body %>
+<%- include('../main', {
+  pageStyles: '/styles/boosts.css',
+  pageScript: '/scripts/boosts.js',
+  content: `
+    <div id="counter">
+      Blocks: <span id="blocksCounter">0.000</span>
+    </div>
+      <div class="error-message" id="formErrorMessage"></div>
+    <div id="boostsContainer"></div>
+    `
+}) %>
