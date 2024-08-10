@@ -14,41 +14,85 @@ body {
   user-select: none; /* Standard syntax */
 }
 #mainContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  width: 35%;
-  height: 85%;
+  box-sizing: border-box;
   background-image: url("../backgroun.png");
   background-size: cover;
   background-position: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   border-radius: 15px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+}
+.grid {
+  display: grid;
+  height: 100vh;
+  max-height: 800px;
+  width: 100%;
+  max-width: 600px;
+  row-gap: 5px;
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-areas:
+    "counter"
+    "mineSpeed"
+    "error"
+    "content"
+    "menu";
+  align-items: center;
+}
+.grid-item-counter {
+  grid-area: counter;
+  justify-self: center;
+  align-self: start;
+  grid-row: 1;
+}
+.grid-item-error {
+  grid-area: error;
+  justify-self: center;
+  align-self: start;
+  grid-row: 3;
+}
+#counter {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 5px;
+}
+#counter span {
+  margin-left: 1vh;
+}
+.error {
+  color: red;
+  justify-content: center;
+  align-content: center;
+}
+.error-message {
+  display: none;
+  color: red;
+  align-content: center;
+  text-align: center;
+  font-size: 1.2em;
 }
 #menu {
-  position: absolute;
-  bottom: 0;
   width: 80%;
-  max-height: 11vh;
-  display: table;
+  height: 70px;
+  display: flex;
   border-spacing: 1vh 0;
   table-layout: fixed;
   justify-content: space-around;
+  align-items: center;
+  font-size: 0.9em;
   background-color: rgba(0, 2, 15, 0.7);
   border-top: 1px solid #3ba3e3;
   padding: 5px 0;
+  margin-top: 5px;
   border-radius: 15px 15px 0 0;
+}
+.grid-item-menu {
+  grid-area: menu;
+  justify-self: center;
+  align-self: end;
+  grid-row: 5;
 }
 .menu-item {
   display: table-cell;
   text-align: center;
-  margin: 0 1vh 0 1vh;
+  margin: 0 5px 0 5px;
   flex: 1;
 }
 .menu-item img {
@@ -86,33 +130,21 @@ transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
 }
 
 /* MEDIA WIDTH */
-@media (max-width: 1600px){
-  #mainContainer {
-    width: 45%;
-  }
-}
-@media (max-width: 1200px){
-  #mainContainer {
-    width: 70%;
-  }
-}
-@media (max-width: 950px){
-  #mainContainer {
-    width: 90%;
-  }
-}
-@media (max-width: 800px){
-  #mainContainer {
-    width: 100%;
-  }
-}
-@media (max-width: 600px){
+@media (max-width: 600px) {
   body {
     width: 100%;
     position: fixed;
   }
   #menu {
     width: 100%;
+    flex-direction: row;
+  }
+  .menu-item {
+    max-width: none;
+    margin: 0 1px;
+  }
+  .menu-item button {
+    font-size: 1em;
   }
 }
 /* MEDIA HEIGHT */

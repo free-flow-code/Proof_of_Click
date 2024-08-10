@@ -1,44 +1,18 @@
-#counter {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  top: 2vh;
-  font-size: 2.5vh;
-  font-weight: bold;
-}
-#counter span {
-  margin-left: 1vh;
-}
-.error {
-  color: red;
-  margin: 0 5vh 1vh 5vh; /* top | right | bottom | left */
-  justify-content: center;
-  align-content: center;
-  font-size: 2.5vh;
-}
-.error-message {
-  position: absolute;
-  top: 5vh;
-  display: none;
-  color: red;
-  margin: 0 5vh 1vh 5vh;
-  align-content: center;
-  text-align: center;
-  font-size: 2.5vh;
-}
 #boostsContainer {
   display: flex;
-  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  width: 80%;
-  margin-top: 9vh;
-  margin-bottom: 10vh;
+  flex-direction: column;
+  width: 90%;
   overflow-y: auto;
-  flex-grow: 1;
   scrollbar-width: none; /* For Firefox */
   -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+.grid-item-content {
+  grid-area: content;
+  justify-self: center;
+  align-self: stretch;
+  grid-row: 4;
 }
 #boostsContainer::-webkit-scrollbar {
   display: none; /* For Chrome, Safari, and Opera */
@@ -49,7 +23,13 @@
   border-radius: 8px;
   padding: 1vh;
   width: 80%;
-  margin-bottom: 2vh;
+  margin-bottom: 5px;
+  justify-content: space-between;
+  align-items: center;
+}
+.boostTitleLevelContainer {
+  display: flex;
+  width: 100%;
   justify-content: space-between;
   align-items: center;
 }
@@ -57,26 +37,29 @@
   display: inline-block;
   width: 70%;
   color: #cb904d;
-  font-size: 2.5vh;
+  font-size: 1.5em;
   font-weight: bold;
+  flex-grow: 1;
 }
 .boostLevel {
   display: inline-block;
   width: 30%;
   color: #cb904d;
-  font-size: 2.5vh;
+  font-size: 1.5em;
   text-align: right;
+  flex-shrink: 0;
 }
 .boostDescription {
   width: 100%;
   display: block;
-  font-size: 1.8vh;
+  font-size: 1.3em;
   padding: 1vh 0;
   color: rgb(0, 114, 190);
 }
 .boostImageDetailsContainer {
   display: flex;
   align-items: flex-start;
+  justify-content: space-around;
 }
 .boostImage {
   display: contents;
@@ -95,14 +78,14 @@
 .boostCharacteristic {
   display: flex;
   width: 100%;
-  font-size: 2vh;
+  font-size: 1.2em;
   margin-bottom: 2vh;
   justify-content: center;
 }
 .boostPrice {
   display: flex;
   width: 100%;
-  font-size: 2vh;
+  font-size: 1.3em;
   justify-content: space-between;
   margin-top: 1vh;
 }
@@ -110,7 +93,8 @@
   display: inline-block;
 }
 .priceValue {
-  color: #8e94f2;
+  color: #65d7fc;
+  font-weight: 600;
 }
 .boostProgressContainer {
   display: flex;
@@ -118,11 +102,11 @@
   margin-bottom: 1.5vh;
 }
 .progressMinValue {
-  font-size: 2vh;
+  font-size: 1.3em;
   margin-right: 1vh;
 }
 .progressMaxValue {
-  font-size: 2vh;
+  font-size: 1.3em;
   margin-left: 1vh;
 }
 .boostProgress {
@@ -146,8 +130,8 @@
 }
 .boostProgressMarkerValue {
   position: absolute;
-  top: -1.7vh;
-  font-size: 1.5vh;
+  top: -19px;
+  font-size: 0.9em;
   font-weight: 600;
   color: green;
 }
@@ -160,11 +144,11 @@
 button {
   width: 100%;
   padding: 1vh 0;
-  margin: 1vh 0;
+  margin-top: 5px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 2vh;
+  font-size: 1.3em;
   color: white;
 }
 button:disabled {

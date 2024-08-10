@@ -1,6 +1,3 @@
-/* leaderboard.css */
-
-/* Spinning animation for the spinner */
 .spinner {
   position: fixed;
   top: 50%;
@@ -13,31 +10,31 @@
   height: 5vh;
   animation: spin 2s linear infinite;
 }
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-/* Styling for leaderboard container */
 #leaderboardContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-left: 20px;
   padding-right: 20px;
-  margin-top: 2vh;
-  margin-bottom: 10vh;
   width: 80%;
   overflow-y: auto;
   flex-grow: 1;
   scrollbar-width: none; /* For Firefox */
   -ms-overflow-style: none; /* For Internet Explorer and Edge */
 }
+.grid-item-content {
+  grid-area: content;
+  justify-self: center;
+  align-self: stretch;
+  grid-row: 4;
+}
 #leaderboardContainer::-webkit-scrollbar {
   display: none; /* For Chrome, Safari, and Opera */
 }
-
 .leader {
   background-color: rgba(0, 2, 15, 0.7);
   border: 1px solid #3ba3e3;
@@ -49,28 +46,34 @@
   justify-content: space-between;
   align-items: center;
 }
-
 .leader div {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-
 .leader .rank {
-  width: 20%;
+  width: 10%;
   text-align: center;
+  color: green;
+  font-size: 1.8em;
 }
-
 .leader .user-info, .leader .balance-info {
   width: 40%;
 }
-
 .itemTitle {
+  color: #cb904d;
   font-size: 0.8em;
-  color: #bbb;
 }
-
 .itemContent {
   font-size: 1.2em;
   color: #fff;
+}
+@media (max-width: 600px) {
+  #leaderboardContainer {
+    width: 100%;
+    padding: 0;
+  }
+  .leader {
+    width: 90%;
+  }
 }

@@ -1,15 +1,19 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com/css?family=Poppins">
     <link rel="stylesheet" href="styles/login_styles.css">
     <title>Login</title>
+    <link rel="icon" type="image/x-icon" href="icons/favicon.svg">
 </head>
 <body>
   <div class="wrapper fadeInDown">
     <div id="formContent">
+      <div class="tabs">
       <h2 id="signInTab" class="active" onclick="switchTab('signIn')"> Sign In </h2>
       <h2 id="signUpTab" class="inactive underlineHover" onclick="switchTab('signUp')">Sign Up </h2>
+      </div>
 
 
       <!-- Icon -->
@@ -33,8 +37,10 @@
         </div>
 
         <div class="error-message" id="formErrorMessage"></div>
-        <input type="submit" class="fadeIn fourth" value="Submit">
-        <span id="spinner" class="innerbox spinner-hidden"></span>
+        <button type="submit" class="fadeIn fourth submit-button">
+          Submit
+          <span id="spinner" class="innerbox spinner-hidden"></span>
+        </button>
       </form>
 
       <!-- Remind Password -->

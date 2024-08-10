@@ -1,19 +1,9 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const blocksCounter = document.getElementById("blocksCounter");
+// boosts.js
+
+document.addEventListener("DOMContentLoaded", async () => {
   const formErrorMessage = document.getElementById("formErrorMessage");
   const boostsContainer = document.getElementById("boostsContainer");
-  let userBalance = 0;
-  let clicksPerSec = 0;
-  let blocksPerClick = 0;
-
-  function showError(message) {
-    const errorMessage = document.getElementById('formErrorMessage');
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-    setTimeout(() => {
-      errorMessage.style.display = 'none';
-    }, 5000);
-  }
+  let { blocks_balance: userBalance, clicks_per_sec: clicksPerSec, blocks_per_click: blocksPerClick } = await fetchInitialData() || {};
 
   const fetchData = async () => {
     try {
@@ -32,10 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
         userBalance = data.user_balance;
         clicksPerSec = data.clicks_per_sec;
         blocksPerClick = data.blocks_per_click;
-        blocksCounter.textContent = userBalance.toFixed(3);
+        updateBlocksCounter(userBalance);
         renderBoosts(data.boosts);
       } else {
-        showError("Failed to fetch boosts.");
+        const errorData = await response.json();
+        showError(errorData.detail || "Failed to fetch boosts.");
       }
     } catch (error) {
       showError("An error occurred.");
@@ -49,6 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const boostCard = document.createElement("div");
       boostCard.classList.add("boostCard");
 
+      const boostTitleLevelContainer = document.createElement("div");
+      boostTitleLevelContainer.classList.add("boostTitleLevelContainer");
+
       const boostTitle = document.createElement("div");
       boostTitle.classList.add("boostTitle");
       boostTitle.textContent = boostDetails.boost_title;
@@ -56,6 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const boostLevel = document.createElement("div");
       boostLevel.classList.add("boostLevel");
       boostLevel.textContent = `Level: ${boostDetails.current_level}`;
+
+      boostTitleLevelContainer.appendChild(boostTitle);
+      boostTitleLevelContainer.appendChild(boostLevel);
 
       const boostDescription = document.createElement("details");
       boostDescription.classList.add("boostDescription");
@@ -147,8 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
       boostImageDetailsContainer.appendChild(boostImage);
       boostImageDetailsContainer.appendChild(boostDetailsContainer);
 
-      boostCard.appendChild(boostTitle);
-      boostCard.appendChild(boostLevel);
+      boostCard.appendChild(boostTitleLevelContainer);
       boostCard.appendChild(boostDescription);
       boostCard.appendChild(boostImageDetailsContainer);
       boostCard.appendChild(upgradeBoost);
@@ -156,9 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       boostsContainer.appendChild(boostCard);
 
-      // Обновление кнопки после клика
       upgradeBoost.addEventListener("click", async () => {
-        upgradeBoost.disabled = true; // Блокируем кнопку перед запросом
+        upgradeBoost.disabled = true;
         try {
           const response = await fetch(`http://127.0.0.1:8000/boosts/upgrade/${boostName}`, {
             method: 'GET',
@@ -173,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
           showError("An error occurred.");
         } finally {
-          upgradeBoost.disabled = userBalance < boostDetails.next_lvl_price; // Возвращаем состояние кнопки после завершения запроса
+          upgradeBoost.disabled = userBalance < boostDetails.next_lvl_price;
         }
       });
 
@@ -199,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchData();
   setInterval(() => {
     userBalance += clicksPerSec * blocksPerClick;
-    blocksCounter.textContent = userBalance.toFixed(3);
+    updateBlocksCounter(userBalance);
     document.querySelectorAll(".upgradeBoost").forEach((button, index) => {
       const boost = boostsContainer.children[index];
       const nextLvlPrice = parseFloat(boost.querySelector(".boostPrice .priceValue").textContent);

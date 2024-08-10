@@ -12,9 +12,13 @@
   <link rel="icon" type="image/x-icon" href="icons/favicon.svg">
 </head>
 <body>
-  <div id="mainContainer">
-    <%- content %>
-    <div id="menu">
+  <div id="mainContainer" class="grid">
+    <div id="counter" class="grid-item-counter">
+      Blocks: <span id="blocksCounter">0.000</span>
+    </div>
+      <div class="error-message" id="formErrorMessage" class="grid-item-error"></div>
+      <%- content %>
+    <div id="menu" class="grid-item-menu">
       <div class="menu-item">
         <button onclick="window.location.href='/'">
           <img src="/icons/home.svg" alt="Главная">
@@ -42,6 +46,7 @@
     </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/scripts/main.js"></script>
   <script src="<%= pageScript %>"></script>
 </body>
 </html>
