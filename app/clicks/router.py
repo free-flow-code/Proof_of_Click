@@ -32,7 +32,7 @@ async def get_clicks_data(current_user: Users = Depends(get_current_user)):
 async def receive_clicks(request: Request, current_user: Users = Depends(get_current_user), redis=Depends(get_redis)):
     try:
         data = await request.json()
-        clicks = data.get("clicks")
+        clicks = data.get("clicks")  # number of clicks (int)
         rounded_clicks = round(clicks, 3)
         if clicks is None:
             raise ClicksDataException

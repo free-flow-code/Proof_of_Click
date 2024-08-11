@@ -1,10 +1,10 @@
 .spinner {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 46%;
+  left: 46%;
   transform: translate(-50%, -50%);
-  border: 1vh solid #f3f3f3; /* Light grey */
-  border-top: 1vh solid #3498db; /* Blue */
+  border: 1vh solid #f3f3f3;
+  border-top: 1vh solid #3498db;
   border-radius: 50%;
   width: 5vh;
   height: 5vh;
@@ -59,6 +59,10 @@
 }
 .leader .user-info, .leader .balance-info {
   width: 40%;
+  overflow: hidden;
+}
+.balance-info {
+  overflow: hidden;
 }
 .itemTitle {
   color: #cb904d;

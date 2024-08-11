@@ -1,6 +1,3 @@
-// main.js
-
-// Функция для отображения ошибок
 function showError(message) {
   const errorMessage = document.getElementById('formErrorMessage');
   errorMessage.textContent = message;
@@ -10,13 +7,20 @@ function showError(message) {
   }, 5000);
 }
 
-// Функция для обновления счетчика блоков
-function updateBlocksCounter(userBalance) {
-  const blocksCounter = document.getElementById("blocksCounter");
-  blocksCounter.textContent = userBalance.toFixed(3);
+// Function to format numbers with spaces
+function formatNumber(num) {
+  const [integerPart, decimalPart] = num.toString().split('.');
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return `${formattedIntegerPart}.${decimalPart || '000'}`;
 }
 
-// Функция для получения и обработки данных при загрузке страницы
+// Function to update block counter
+function updateBlocksCounter(userBalance) {
+  const blocksCounter = document.getElementById("blocksCounter");
+  blocksCounter.textContent = formatNumber(userBalance.toFixed(3));
+}
+
+// Function for receiving and processing data when loading a page
 async function fetchInitialData() {
   try {
     const response = await fetch("http://127.0.0.1:8000/clicks/get_data", {
@@ -33,9 +37,12 @@ async function fetchInitialData() {
       const data = await response.json();
       const { blocks_balance, clicks_per_sec, blocks_per_click } = data;
 
-      // Подставляем значения в счетчик и другие переменные
+      clicksPerSec = clicks_per_sec || 1;
+      blocksPerClick = blocks_per_click || 0.001;
+
       updateBlocksCounter(blocks_balance);
-      return { blocks_balance, clicks_per_sec, blocks_per_click };
+
+      return { blocks_balance, clicks_per_sec: clicksPerSec, blocks_per_click: blocksPerClick };
     } else {
       const errorData = await response.json();
       showError(errorData.detail || "Failed to fetch data.");
@@ -44,6 +51,3 @@ async function fetchInitialData() {
     showError("An error occurred.");
   }
 }
-
-// Вызов функции для получения данных при загрузке страницы
-document.addEventListener("DOMContentLoaded", fetchInitialData);

@@ -1,5 +1,3 @@
-// boosts.js
-
 document.addEventListener("DOMContentLoaded", async () => {
   const formErrorMessage = document.getElementById("formErrorMessage");
   const boostsContainer = document.getElementById("boostsContainer");
