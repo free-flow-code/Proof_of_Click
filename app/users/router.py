@@ -3,8 +3,8 @@ import logging
 from fastapi import APIRouter, Response, Depends, HTTPException, status
 
 from app.config import settings
+from app.redis_init import get_redis, add_user_data_to_redis
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
-from app.users.models import Users
 from app.users.dao import UsersDAO
 from app.users.auth import authenticate_user, add_user, create_access_token, get_password_from_hash
 from app.users.dependencies import get_current_user
@@ -27,14 +27,18 @@ router = APIRouter(
 async def register_user(response: Response, user_data: SUserAuth):
     created_user = await add_user(user_data)
     await login_user(response, user_data)
+    await add_user_data_to_redis(created_user)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logging.info(f"User {user_data.username} registered")
 
 
-@router.post("/register/{referral_link}")
-async def register_ref_user(user_data: SUserAuth, referral_link: str):
-    await add_user(user_data, referral_link)
-    return {"detail": "User register successfully"}
+@router.post("/register/{referral_link}")  # TODO refferal_link - optional and delete first router?????
+async def register_ref_user(response: Response, user_data: SUserAuth, referral_link: str):
+    created_user = await add_user(user_data, referral_link)
+    await login_user(response, user_data)
+    await add_user_data_to_redis(created_user)
+    send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
+    logging.info(f"User {user_data.username} registered")
 
 
 @router.post("/login")
@@ -63,13 +67,15 @@ async def restore_password(user_data: SRestorePassword):
 
 # verify email
 @router.get("/verify/{mail_confirm_code}")
-async def verify_email(mail_confirm_code: int, current_user: Users = Depends(get_current_user)):
-    if current_user.is_confirm_mail:
+async def verify_email(mail_confirm_code: int, current_user=Depends(get_current_user), redis=Depends(get_redis)):
+    if bool(current_user["is_confirm_mail"]):
         # возвращаем исключение для перенаправления на index.html
         raise HTTPException(status_code=status.HTTP_301_MOVED_PERMANENTLY)
-    if int(current_user.mail_confirm_code) != mail_confirm_code:
+    if int(current_user["mail_confirm_code"]) != mail_confirm_code:
         raise IncorrectEmailCodeException
-    await UsersDAO.edit(current_user.id, is_confirm_mail=True)
+
+    await UsersDAO.edit(int(current_user["id"]), is_confirm_mail=True)
+    await redis.hset(f"user_data:{current_user['id']}", mapping={"is_confirm_mail": "True"})
     return {"detail": "Email is verify"}
 
 
@@ -80,21 +86,33 @@ async def logout_user(response: Response):
 
 
 @router.get("/me")
-async def get_current_user_me(current_user: Users = Depends(get_current_user)):
-    user = dict(current_user)
-    user.pop("hash_password", None)
-    user.pop("last_update_time", None)
-    return user
+async def get_me_info(current_user=Depends(get_current_user)):
+    keys_to_send = [
+        "username",
+        "mail",
+        "blocks_balance",
+        "clicks_per_sec",
+        "blocks_per_click",
+        "referral_link"
+    ]
+    return {key: current_user[key] for key in keys_to_send if key in current_user}
 
 
 @router.get("/leaders")
-async def get_leaders(current_user: Users = Depends(get_current_user)):
-    return await UsersDAO.get_top_100_users()
+async def get_leaders(current_user=Depends(get_current_user)):
+    redis_client = await get_redis()
+    top_users = await redis_client.zrevrange('users_balances', 0, 99, withscores=True)
+    return list(
+        map(
+            lambda user_data: {"username": user_data[0], "balance": user_data[1]},
+            top_users
+        )
+    )
 
 
 @router.delete("/{user_id}")
-async def delete_user(user_id: int, current_user: Users = Depends(get_current_user)):
-    if current_user.role.value != "admin":
+async def delete_user(user_id: int, current_user=Depends(get_current_user), redis=Depends(get_redis)):
+    if current_user["role"] != "admin":
         raise AccessDeniedException
 
     user = await UsersDAO.find_one_or_none(id=user_id)
@@ -102,4 +120,5 @@ async def delete_user(user_id: int, current_user: Users = Depends(get_current_us
         raise ObjectNotFoundException
 
     await UsersDAO.delete(user_id)
+    await redis.delete(f"user_data:{user_id}")
     return {"detail": "User deleted successfully"}

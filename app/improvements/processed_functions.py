@@ -1,9 +1,8 @@
 from app.improvements.dao import ImprovementsDAO
-from app.users.dao import UsersDAO
 from app.exceptions import BadRequestException
 
 
-async def get_level_purchased_boost(user_id, boost_name, redis):
+async def get_level_purchased_boost(user_id: int, boost_name: str, redis):
     user_boost = await ImprovementsDAO.get_user_boost_by_name(user_id, boost_name)
     boost_max_levels = await redis.get(f"{boost_name}_max_levels")
 
@@ -19,18 +18,17 @@ async def get_level_purchased_boost(user_id, boost_name, redis):
         raise BadRequestException
 
 
-async def recalculate_user_data(user, boost_name, boost_value):
-    updated_user_balance = round(user.blocks_balance - boost_value, 3)
+async def recalculate_user_data(user: dict, boost_name: str, boost_price: float, boost_value: float, redis):
+    updated_user_balance = round(float(user["blocks_balance"]) - boost_price, 3)
+    await redis.zadd("users_balances", {f"{user['username']}": updated_user_balance})
 
     if boost_name == "autoclicker":
-        clicks_per_sec = boost_value
-        await UsersDAO.edit(user.id, blocks_balance=updated_user_balance, clicks_per_sec=clicks_per_sec)
+        await redis.hset(f"user_data:{user['id']}", mapping={"clicks_per_sec": boost_value})
     elif boost_name == "multiplier":
-        blocks_per_click = boost_value
-        await UsersDAO.edit(user.id, blocks_balance=updated_user_balance, blocks_per_click=blocks_per_click)
+        await redis.hset(f"user_data:{user['id']}", mapping={"blocks_per_click": boost_value})
 
 
-async def get_boost_details(boost_name, redis, boost_current_lvl=0, language="en"):
+async def get_boost_details(boost_name: str, redis, boost_current_lvl=0, language="en"):
     boost_title = await redis.get(f"{boost_name}_name_{language}")
     description = await redis.get(f"{boost_name}_description_{language}")
     characteristic = await redis.get(f"{boost_name}_characteristic_{language}")

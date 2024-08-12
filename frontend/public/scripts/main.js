@@ -23,7 +23,7 @@ function updateBlocksCounter(userBalance) {
 // Function for receiving and processing data when loading a page
 async function fetchInitialData() {
   try {
-    const response = await fetch("http://127.0.0.1:8000/clicks/get_data", {
+    const response = await fetch("http://127.0.0.1:8000/auth/me", {
       method: 'GET',
       credentials: 'include',
     });

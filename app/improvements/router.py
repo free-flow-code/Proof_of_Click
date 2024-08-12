@@ -26,8 +26,8 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_user_boosts(user: Users = Depends(get_current_user), redis=Depends(get_redis)):
-    user_boosts = await ImprovementsDAO.find_by_user_id(user.id)
+async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(get_redis)):
+    user_boosts = await ImprovementsDAO.find_by_user_id(int(current_user["id"]))
     data = {}
     boosts = []
     if user_boosts:
@@ -57,28 +57,27 @@ async def get_user_boosts(user: Users = Depends(get_current_user), redis=Depends
         boost[f"{boost_name}"] = await get_boost_details(boost_name, redis)
         data["boosts"].append(boost)
 
-    # TODO recalculate user balance
     data["boosts"] = sorted(data["boosts"], key=lambda d: list(d.keys())[0])
-    data["user_balance"] = user.blocks_balance
-    data["clicks_per_sec"] = user.clicks_per_sec
-    data["blocks_per_click"] = user.blocks_per_click
+    data["user_balance"] = current_user["blocks_balance"]
+    data["clicks_per_sec"] = current_user["clicks_per_sec"]
+    data["blocks_per_click"] = current_user["blocks_per_click"]
     return data
 
 
 @router.get("/upgrade/{boost_name}")
-async def upgrade_boost(boost_name: str, user: Users = Depends(get_current_user), redis=Depends(get_redis)):
+async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user), redis=Depends(get_redis)):
     all_boosts = await redis.get("name_boosts")
     if boost_name not in ast.literal_eval(all_boosts):
         raise BadRequestException
     # получить уровень покупаемого улучшения для этого юзера
-    level_purchased_boost, boost_id = await get_level_purchased_boost(user.id, boost_name, redis)
+    level_purchased_boost, boost_id = await get_level_purchased_boost(int(current_user["id"]), boost_name, redis)
 
     # сравнить стоимость улучшения с текущим балансом юзера, добавить/изменить boost
     boost_value = await redis.get(f"{boost_name}_level_{level_purchased_boost}_value")
     boost_price = await redis.get(f"{boost_name}_level_{level_purchased_boost}_price")
-    if user.blocks_balance >= float(boost_price):
+    if float(current_user["blocks_balance"]) >= float(boost_price):
         boost_data = {
-            "user_id": user.id,
+            "user_id": int(current_user["id"]),
             "name": boost_name,
             "purchase_date": date.today(),
             "level": level_purchased_boost,
@@ -89,7 +88,7 @@ async def upgrade_boost(boost_name: str, user: Users = Depends(get_current_user)
         else:
             boost = await ImprovementsDAO.edit(boost_id, **boost_data)
         # пересчитать blocks_balance, blocks_per_sec, blocks_per_click, boost.level
-        await recalculate_user_data(user, boost_name, float(boost_value))
+        await recalculate_user_data(current_user, boost_name, float(boost_price), float(boost_value), redis)
         return boost
     else:
         raise NotEnoughFundsException
@@ -97,6 +96,7 @@ async def upgrade_boost(boost_name: str, user: Users = Depends(get_current_user)
 
 @router.get("/buy/{boost_name}")
 async def buy_boost(boost_name: str, user: Users = Depends(get_current_user), redis=Depends(get_redis)):
+    # TODO
     pass
 
 
@@ -108,9 +108,9 @@ async def add_boost(
         level: int,
         redis_key: str,
         image_id: Optional[int] = None,
-        user: Users = Depends(get_current_user)
+        current_user=Depends(get_current_user)
 ):
-    if user.role.value != "admin":
+    if current_user["role"] != "admin":
         raise AccessDeniedException
 
     await ImprovementsDAO.add(
@@ -125,8 +125,8 @@ async def add_boost(
 
 
 @router.delete("/boost/{boost_id}")
-async def delete_boost(boost_id: int, user: Users = Depends(get_current_user)):
-    if user.role.value != "admin":
+async def delete_boost(boost_id: int, current_user=Depends(get_current_user)):
+    if current_user["role"] != "admin":
         raise AccessDeniedException
 
     item = await ImprovementsDAO.find_one_or_none(id=boost_id)

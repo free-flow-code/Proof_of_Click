@@ -1,7 +1,7 @@
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
   event.preventDefault();
 
-  const submitButton = document.querySelector('.submit-button');  // Изменено для работы с <button>
+  const submitButton = document.querySelector('.submit-button');
   const spinner = document.getElementById('spinner');
   const username = document.getElementById('username').value;
   const login = document.getElementById('login').value;

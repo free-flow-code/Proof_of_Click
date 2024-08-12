@@ -14,8 +14,8 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_user_notifications(user: Users = Depends(get_current_user)) -> list[SNotifications]:
-    return await NotificationsDAO.find_by_user_id(user.id)
+async def get_user_notifications(current_user=Depends(get_current_user)) -> list[SNotifications]:
+    return await NotificationsDAO.find_by_user_id(int(current_user["id"]))
 
 
 @router.get("/add_notification")
@@ -23,9 +23,9 @@ async def add_notification(
         user_id: int,
         text: str,
         send_date: date,
-        user: Users = Depends(get_current_user)
+        current_user=Depends(get_current_user)
 ):
-    if user.role.value != "admin":
+    if current_user["role"] != "admin":
         raise AccessDeniedException
 
     await NotificationsDAO.add(
@@ -37,8 +37,8 @@ async def add_notification(
 
 
 @router.delete("/{notification_id}")
-async def delete_notification(notification_id: int, user: Users = Depends(get_current_user)):
-    if user.role.value != "admin":
+async def delete_notification(notification_id: int, current_user=Depends(get_current_user)):
+    if current_user["role"] != "admin":
         raise AccessDeniedException
 
     item = await NotificationsDAO.find_one_or_none(id=notification_id)

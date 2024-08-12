@@ -4,6 +4,8 @@ from datetime import datetime
 
 from app.config import settings
 from app.users.dao import UsersDAO
+from app.data_processing_funcs import sanitize_user_data
+from app.redis_init import get_redis, add_user_data_to_redis
 from app.exceptions import TokenExpiredException, TokenAbsentException, \
     IncorrectTokenFormatException, UserIsNotPresentException
 
@@ -15,7 +17,7 @@ def get_token(request: Request):
     return token
 
 
-async def get_current_user(token: str = Depends(get_token)):
+async def get_current_user(token: str = Depends(get_token)) -> dict:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
@@ -27,9 +29,15 @@ async def get_current_user(token: str = Depends(get_token)):
     user_id: str = payload.get("sub")
     if not user_id:
         raise UserIsNotPresentException
-    user = await UsersDAO.find_by_model_id(int(user_id))
-    if not user:
-        raise UserIsNotPresentException
 
-    return user
+    redis_client = await get_redis()
+    if await redis_client.exists(f"user_data:{user_id}"):
+        user_data = await redis_client.hgetall(f"user_data:{user_id}")
+    else:
+        user = await UsersDAO.find_by_model_id(int(user_id))
+        user_data = sanitize_user_data(user)
+        await add_user_data_to_redis(user_data)
+        if not user:
+            raise UserIsNotPresentException
 
+    return user_data

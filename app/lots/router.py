@@ -15,8 +15,8 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_user_lots(user: Users = Depends(get_current_user)) -> list[SLots]:
-    return await LotsDAO.find_by_user_id(user.id)
+async def get_user_lots(current_user=Depends(get_current_user)) -> list[SLots]:
+    return await LotsDAO.find_by_user_id(int(current_user["id"]))
 
 
 @router.get("/add_lot")
@@ -28,9 +28,9 @@ async def add_lot(
         start_price: float,
         best_price: Optional[float],
         best_price_user_id: Optional[int],
-        user: Users = Depends(get_current_user)
+        current_user=Depends(get_current_user)
 ):
-    if user.role.value != "admin":
+    if current_user["role"] != "admin":
         raise AccessDeniedException
 
     await LotsDAO.add(
@@ -46,8 +46,8 @@ async def add_lot(
 
 
 @router.delete("/{lot_id}")
-async def delete_lot(lot_id: int, user: Users = Depends(get_current_user)):
-    if user.role.value != "admin":
+async def delete_lot(lot_id: int, current_user=Depends(get_current_user)):
+    if current_user["role"] != "admin":
         raise AccessDeniedException
 
     item = await LotsDAO.find_one_or_none(id=lot_id)

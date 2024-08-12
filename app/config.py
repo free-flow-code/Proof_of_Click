@@ -32,5 +32,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str
     SMTP_PORT: int
 
+    MAX_BLOCKS: int
+
 
 settings = Settings()

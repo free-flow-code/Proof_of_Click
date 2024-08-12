@@ -6,7 +6,8 @@ from fastapi_cache.backends.redis import RedisBackend
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.redis_init import init_redis, load_boosts, load_game_items
+from app.redis_init import init_redis
+from app.data_processing_funcs import load_boosts, load_game_items
 from app.game_items.router import router as items_router
 from app.users.router import router as users_router
 from app.improvements.router import router as improvements_router
