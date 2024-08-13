@@ -4,7 +4,6 @@ from datetime import date
 
 from app.lots.dao import LotsDAO
 from app.lots.schemas import SLots
-from app.users.models import Users
 from app.users.dependencies import get_current_user
 from app.exceptions import AccessDeniedException, ObjectNotFoundException
 

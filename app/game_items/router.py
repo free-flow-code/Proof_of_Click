@@ -4,7 +4,6 @@ from datetime import date
 
 from app.game_items.dao import GameItemsDAO
 from app.game_items.schemas import SGameItem
-from app.users.models import Users
 from app.users.dependencies import get_current_user
 from app.exceptions import AccessDeniedException, ObjectNotFoundException
 

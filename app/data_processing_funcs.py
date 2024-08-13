@@ -63,19 +63,6 @@ async def load_boosts(redis_client):
     logging.info("Boosts loads successful to redis")
 
 
-async def load_game_items(redis_client):
-    """Загружает игровые предметы в redis.
-
-    Все значения находятся в game_item:{item_name}. Не сериализованы.
-    """
-    with open("app/game_items.json", "r", encoding="utf-8") as file:
-        game_items = json.loads(file.read())
-        for game_item in game_items:
-            for item_name, item_details in game_item.items():
-                await redis_client.hset(f"game_item:{item_name}", mapping=item_details)
-    logging.info("Game items loads successful to redis")
-
-
 async def add_user_data_to_redis(user_data: dict, redis):
     redis_client = await get_redis()
     await redis_client.zadd("users_balances", {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)})
