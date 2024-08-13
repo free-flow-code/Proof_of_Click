@@ -4,8 +4,9 @@ from datetime import datetime
 
 from app.config import settings
 from app.users.dao import UsersDAO
+from app.redis_init import get_redis
 from app.data_processing_funcs import sanitize_dict_for_redis
-from app.redis_init import get_redis, add_user_data_to_redis
+from app.data_processing_funcs import add_user_data_to_redis
 from app.exceptions import TokenExpiredException, TokenAbsentException, \
     IncorrectTokenFormatException, UserIsNotPresentException
 
@@ -36,7 +37,7 @@ async def get_current_user(token: str = Depends(get_token)) -> dict:
     else:
         user = await UsersDAO.find_by_model_id(int(user_id))
         user_data = sanitize_dict_for_redis(user)
-        await add_user_data_to_redis(user_data)
+        await add_user_data_to_redis(user_data, redis_client)
         if not user:
             raise UserIsNotPresentException
 

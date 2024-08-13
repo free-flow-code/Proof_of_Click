@@ -3,7 +3,8 @@ import logging
 from fastapi import APIRouter, Response, Depends, HTTPException, status
 
 from app.config import settings
-from app.redis_init import get_redis, add_user_data_to_redis
+from app.redis_init import get_redis
+from app.data_processing_funcs import add_user_data_to_redis
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
 from app.users.dao import UsersDAO
 from app.users.auth import authenticate_user, add_user, create_access_token, get_password_from_hash
@@ -24,19 +25,19 @@ router = APIRouter(
 
 
 @router.post("/register")
-async def register_user(response: Response, user_data: SUserAuth):
+async def register_user(response: Response, user_data: SUserAuth, redis=Depends(get_redis)):
     created_user = await add_user(user_data)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user)
+    await add_user_data_to_redis(created_user, redis)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logging.info(f"User {user_data.username} registered")
 
 
-@router.post("/register/{referral_link}")  # TODO refferal_link - optional and delete first router?????
-async def register_ref_user(response: Response, user_data: SUserAuth, referral_link: str):
+@router.post("/register/{referral_link}")  # TODO refferal_link - do it optional and delete first router?????
+async def register_ref_user(response: Response, user_data: SUserAuth, referral_link: str, redis=Depends(get_redis)):
     created_user = await add_user(user_data, referral_link)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user)
+    await add_user_data_to_redis(created_user, redis)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logging.info(f"User {user_data.username} registered")
 

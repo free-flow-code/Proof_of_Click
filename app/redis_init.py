@@ -4,14 +4,6 @@ import logging
 from app.config import settings
 
 
-async def add_user_data_to_redis(user_data: dict):
-    redis_client = await get_redis()
-    await redis_client.zadd("users_balances", {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)})
-    user_id = user_data.get("id")
-    await redis_client.hset(f"user_data:{user_id}", mapping=user_data)
-    await redis_client.expire(f"user_data:{user_id}", 3600)
-
-
 async def init_redis():
     try:
         redis_client = r.asyncio.from_url(

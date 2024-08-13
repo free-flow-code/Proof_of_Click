@@ -4,6 +4,7 @@ from datetime import date
 
 from app.users.models import UserRole
 from app.config import settings
+from app.redis_init import get_redis
 
 
 async def set_mining_chance(redis_client):
@@ -54,7 +55,7 @@ async def load_boosts(redis_client):
                 max_levels = {"max_levels": len(boost_data[f"{boost_name}"]["levels"])}
                 boost_data[f"{boost_name}"].update(max_levels)
                 name_boosts.append(boost_name)
-                
+
                 # Сериализация словаря в JSON строку перед сохранением в Redis
                 serialized_boost_data = json.dumps(boost_data[f"{boost_name}"])
                 await redis_client.hset(f"boost:{boost_name}", mapping={"data": serialized_boost_data})
@@ -73,3 +74,11 @@ async def load_game_items(redis_client):
             for item_name, item_details in game_item.items():
                 await redis_client.hset(f"game_item:{item_name}", mapping=item_details)
     logging.info("Game items loads successful to redis")
+
+
+async def add_user_data_to_redis(user_data: dict, redis):
+    redis_client = await get_redis()
+    await redis_client.zadd("users_balances", {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)})
+    user_id = user_data.get("id")
+    await redis_client.hset(f"user_data:{user_id}", mapping=user_data)
+    await redis_client.expire(f"user_data:{user_id}", 3600)
