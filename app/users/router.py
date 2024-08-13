@@ -87,7 +87,8 @@ async def logout_user(response: Response):
 
 
 @router.get("/me")
-async def get_me_info(current_user=Depends(get_current_user)):
+async def get_me_info(current_user=Depends(get_current_user), redis=Depends(get_redis)):
+    mining_chance = {"mining_chance": await redis.get("mining_chance")}
     keys_to_send = [
         "username",
         "mail",
@@ -96,7 +97,9 @@ async def get_me_info(current_user=Depends(get_current_user)):
         "blocks_per_click",
         "referral_link"
     ]
-    return {key: current_user[key] for key in keys_to_send if key in current_user}
+    user_data = {key: current_user[key] for key in keys_to_send if key in current_user}
+    user_data.update(mining_chance)
+    return user_data
 
 
 @router.get("/leaders")
