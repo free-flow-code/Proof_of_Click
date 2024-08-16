@@ -8,7 +8,7 @@
       "characteristic_ru": "клики в секунду",
       "characteristic_en": "clicks per second",
       "usdt_price": 10,
-      "image_id": 1,
+      "image_id": 11,
       "levels": {
         "1": [1.0, 2],
         "2": [3.1, 3],
@@ -30,7 +30,7 @@
       "characteristic_ru": "блоков за клик",
       "characteristic_en": "blocks per click",
       "usdt_price": 10,
-      "image_id": 2,
+      "image_id": 12,
       "levels": {
         "1": [0.2, 0.002],
         "2": [0.8, 0.003],

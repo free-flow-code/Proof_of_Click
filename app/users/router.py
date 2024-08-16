@@ -88,18 +88,16 @@ async def logout_user(response: Response):
 
 @router.get("/me")
 async def get_me_info(current_user=Depends(get_current_user), redis=Depends(get_redis)):
-    mining_chance = {"mining_chance": await redis.get("mining_chance")}
-    keys_to_send = [
-        "username",
-        "mail",
-        "blocks_balance",
-        "clicks_per_sec",
-        "blocks_per_click",
-        "referral_link"
-    ]
-    user_data = {key: current_user[key] for key in keys_to_send if key in current_user}
-    user_data.update(mining_chance)
-    return user_data
+    mining_chance = await redis.get("mining_chance")
+    return {
+        "username": current_user["username"],
+        "mail": current_user["mail"],
+        "blocks_balance": float(current_user["blocks_balance"]),
+        "clicks_per_sec": int(float(current_user["clicks_per_sec"])),
+        "blocks_per_click": float(current_user["blocks_per_click"]),
+        "referral_link": current_user["referral_link"],
+        "mining_chance": float(mining_chance)
+    }
 
 
 @router.get("/leaders")
@@ -108,7 +106,7 @@ async def get_leaders(current_user=Depends(get_current_user)):
     top_users = await redis_client.zrevrange('users_balances', 0, 99, withscores=True)
     return list(
         map(
-            lambda user_data: {"username": user_data[0], "balance": user_data[1]},
+            lambda user_data: {"username": user_data[0], "blocks_balance": float(user_data[1])},
             top_users
         )
     )

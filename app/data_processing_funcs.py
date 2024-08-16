@@ -4,7 +4,6 @@ from datetime import date
 
 from app.users.models import UserRole
 from app.config import settings
-from app.redis_init import get_redis
 
 
 async def set_mining_chance(redis_client):
@@ -63,9 +62,13 @@ async def load_boosts(redis_client):
     logging.info("Boosts loads successful to redis")
 
 
-async def add_user_data_to_redis(user_data: dict, redis):
-    redis_client = await get_redis()
+async def add_user_data_to_redis(user_data: dict, redis_client):
     await redis_client.zadd("users_balances", {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)})
     user_id = user_data.get("id")
     await redis_client.hset(f"user_data:{user_id}", mapping=user_data)
     await redis_client.expire(f"user_data:{user_id}", 3600)
+
+
+async def load_all_users_balances():
+    """Загружать балансы пользователей в redis из БД при старте приложения"""
+    # TODO

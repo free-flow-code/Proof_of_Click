@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from app.config import settings
 from app.redis_init import init_redis
 from app.data_processing_funcs import load_boosts, set_mining_chance
-from app.game_items_init import create_game_items, get_registry
+from app.game_items_init import create_game_items
 from app.game_items.router import router as items_router
 from app.users.router import router as users_router
 from app.improvements.router import router as improvements_router
@@ -30,9 +30,7 @@ async def lifespan(app: FastAPI):
     global redis_client
     redis_client = await init_redis()
     await load_boosts(redis_client)
-    #await load_game_items(redis_client)
-    await create_game_items()
-    await get_registry()
+    await create_game_items(redis_client)
     await set_mining_chance(redis_client)
     FastAPICache.init(RedisBackend(redis_client), prefix="cache")
     yield
