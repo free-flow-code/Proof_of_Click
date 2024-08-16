@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const formErrorMessage = document.getElementById("formErrorMessage");
   const boostsContainer = document.getElementById("boostsContainer");
-  let { blocks_balance: userBalance, clicks_per_sec: clicksPerSec, blocks_per_click: blocksPerClick } = await fetchInitialData() || {};
 
   const fetchData = async () => {
     try {
@@ -17,11 +16,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (response.ok) {
         const data = await response.json();
-        userBalance = data.user_balance;
-        clicksPerSec = data.clicks_per_sec;
-        blocksPerClick = data.blocks_per_click;
-        updateBlocksCounter(userBalance);
         renderBoosts(data.boosts);
+        console.log("data", data)
+        console.log(data.boosts)
       } else {
         const errorData = await response.json();
         showError(errorData.detail || "Failed to fetch boosts.");
@@ -32,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   const renderBoosts = (boosts) => {
+    console.log("Rendering Boosts...");
     boostsContainer.innerHTML = "";
     boosts.forEach((boost) => {
       const [boostName, boostDetails] = Object.entries(boost)[0];
@@ -189,14 +187,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
-  fetchData();
-  setInterval(() => {
-    userBalance += clicksPerSec * blocksPerClick;
+  // Declaring the userBalance variable and getting initial data
+  let userBalance = 0;
+  const userData = await fetchInitialData();
+  console.log(userData)
+
+  if (userData) {
+    const { blocks_balance, clicks_per_sec, blocks_per_click } = userData;
+    userBalance = blocks_balance || 0;
+
+    // Update counter with initial value
     updateBlocksCounter(userBalance);
-    document.querySelectorAll(".upgradeBoost").forEach((button, index) => {
-      const boost = boostsContainer.children[index];
-      const nextLvlPrice = parseFloat(boost.querySelector(".boostPrice .priceValue").textContent);
-      button.disabled = userBalance < nextLvlPrice;
-    });
-  }, 1000);
+
+    // Start interval to update counter every second
+    setInterval(() => {
+      userBalance += clicks_per_sec * blocks_per_click;
+      updateBlocksCounter(userBalance);
+    }, 1000);
+  }
+  await fetchData();
 });

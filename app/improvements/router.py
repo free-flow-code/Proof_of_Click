@@ -1,4 +1,5 @@
 import ast
+import json
 from fastapi import APIRouter, Depends
 from typing import Optional
 from datetime import date
@@ -58,24 +59,31 @@ async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(
         data["boosts"].append(boost)
 
     data["boosts"] = sorted(data["boosts"], key=lambda d: list(d.keys())[0])
-    data["user_balance"] = current_user["blocks_balance"]
+    """data["user_balance"] = current_user["blocks_balance"]
     data["clicks_per_sec"] = current_user["clicks_per_sec"]
-    data["blocks_per_click"] = current_user["blocks_per_click"]
+    data["blocks_per_click"] = current_user["blocks_per_click"]"""
     return data
 
 
 @router.get("/upgrade/{boost_name}")
-async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user), redis=Depends(get_redis)):
-    all_boosts = await redis.get("name_boosts")
+async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user), redis_client=Depends(get_redis)):
+    all_boosts = await redis_client.get("name_boosts")
     if boost_name not in ast.literal_eval(all_boosts):
         raise BadRequestException
+
+    boost = await redis_client.hgetall(f"boost:{boost_name}")
+    boost_details = json.loads(boost["data"])
     # получить уровень покупаемого улучшения для этого юзера
-    level_purchased_boost, boost_id = await get_level_purchased_boost(int(current_user["id"]), boost_name, redis)
+    level_purchased_boost, boost_id = await get_level_purchased_boost(int(current_user["id"]), boost_name, redis_client)
 
     # сравнить стоимость улучшения с текущим балансом юзера, добавить/изменить boost
-    boost_value = await redis.get(f"{boost_name}_level_{level_purchased_boost}_value")
-    boost_price = await redis.get(f"{boost_name}_level_{level_purchased_boost}_price")
-    if float(current_user["blocks_balance"]) >= float(boost_price):
+    boost_level_details = ast.literal_eval(
+        boost_details["levels"][f"{level_purchased_boost}"]
+    )
+    print(boost_level_details)
+    boost_value = int(boost_level_details[1])
+    boost_price = float(boost_level_details[0])
+    if float(current_user["blocks_balance"]) >= boost_price:
         boost_data = {
             "user_id": int(current_user["id"]),
             "name": boost_name,
@@ -88,7 +96,7 @@ async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user),
         else:
             boost = await ImprovementsDAO.edit(boost_id, **boost_data)
         # пересчитать blocks_balance, blocks_per_sec, blocks_per_click, boost.level
-        await recalculate_user_data(current_user, boost_name, float(boost_price), float(boost_value), redis)
+        await recalculate_user_data(current_user, boost_name, boost_price, boost_value, redis_client)
         return boost
     else:
         raise NotEnoughFundsException
