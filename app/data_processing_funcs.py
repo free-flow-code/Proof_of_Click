@@ -4,6 +4,7 @@ from datetime import date
 
 from app.users.models import UserRole
 from app.config import settings
+from app.users.dao import UsersDAO
 
 
 async def set_mining_chance(redis_client):
@@ -69,6 +70,8 @@ async def add_user_data_to_redis(user_data: dict, redis_client):
     await redis_client.expire(f"user_data:{user_id}", 3600)
 
 
-async def load_all_users_balances():
-    """Загружать балансы пользователей в redis из БД при старте приложения"""
-    # TODO
+async def load_all_users_balances(redis_client):
+    """Загружает топ 100 балансов пользователей в redis из БД."""
+    top_users = await UsersDAO.get_top_100_users()
+    for user in top_users:
+        await redis_client.zadd("users_balances", {f"{user.get('username')}": user.get("blocks_balance", 0.0)})
