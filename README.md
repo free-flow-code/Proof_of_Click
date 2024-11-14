@@ -92,6 +92,23 @@ MAX_BLOCKS=99999999999999999
 $ alembic upgrade head
 ```
 
+Запустите приложение FastAPI:
+```shell
+uvicorn app.main:app --reload
+```
+
+Запустите Celery:
+```shell
+celery -A app.tasks.celery:celery worker --loglevel=INFO
+# для windows дополнительно прописать --pool=solo
+```
+
+Запустите фронтенд:
+```shell
+cd frontend
+npm start
+```
+
 ## Redis
 
 Включите аутентификацию на серверах Redis, чтобы требовать аутентификацию перед выполнением любых операций.

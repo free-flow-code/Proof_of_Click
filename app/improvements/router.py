@@ -28,6 +28,19 @@ router = APIRouter(
 
 @router.get("")
 async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(get_redis)):
+    """
+    Возвращает информацию о всех улучшениях пользователя, включая приобретённые и доступные для покупки.
+
+    Args:
+        current_user: Текущий пользователь.
+        redis: Клиент Redis, для выполнения асинхронных операций.
+
+    Returns:
+        dict: Словарь с данными по улучшениям пользователя, включая:
+            - boosts (list): Список словарей с информацией по каждому улучшению:
+                - Для приобретённых улучшений включены текущие характеристики и уровень.
+                - Для доступных улучшений включены базовые характеристики.
+    """
     user_boosts = await ImprovementsDAO.find_by_user_id(int(current_user["id"]))
     data = {}
     boosts = []
@@ -59,28 +72,44 @@ async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(
         data["boosts"].append(boost)
 
     data["boosts"] = sorted(data["boosts"], key=lambda d: list(d.keys())[0])
-    """data["user_balance"] = current_user["blocks_balance"]
-    data["clicks_per_sec"] = current_user["clicks_per_sec"]
-    data["blocks_per_click"] = current_user["blocks_per_click"]"""
     return data
 
 
 @router.get("/upgrade/{boost_name}")
 async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user), redis_client=Depends(get_redis)):
+    """
+    Покупка улучшения за игровую валюту (blocks).
+    Повышает уровень улучшения для пользователя, если достаточно средств на балансе.
+    Обновляет значения характеристик и баланса, соответственно купленному улучшению.
+
+    Args:
+        boost_name (str): Название улучшения, которое нужно приобрести или улучшить.
+        current_user: Текущий пользователь.
+        redis_client: Клиент Redis, для выполнения асинхронных операций.
+
+    Returns:
+        dict: Словарь с данными о прокаченном улучшении, включающий:
+            - name (str): Название улучшения,
+            - level (int): Уровень улучшения,
+            - image_id (int): id изображения, None - если нет
+
+    Raises:
+        BadRequestException: Если указанное улучшение не существует.
+        NotEnoughFundsException: Если средств на балансе пользователя недостаточно для покупки.
+    """
     all_boosts = await redis_client.get("name_boosts")
     if boost_name not in ast.literal_eval(all_boosts):
         raise BadRequestException
 
     boost = await redis_client.hgetall(f"boost:{boost_name}")
     boost_details = json.loads(boost["data"])
-    # получить уровень покупаемого улучшения для этого юзера
+    # получить новый уровень покупаемого улучшения для этого юзера
     level_purchased_boost, boost_id = await get_level_purchased_boost(int(current_user["id"]), boost_name, redis_client)
 
     # сравнить стоимость улучшения с текущим балансом юзера, добавить/изменить boost
     boost_level_details = ast.literal_eval(
         boost_details["levels"][f"{level_purchased_boost}"]
     )
-    print(boost_level_details)
     boost_value = int(boost_level_details[1])
     boost_price = float(boost_level_details[0])
     if float(current_user["blocks_balance"]) >= boost_price:
@@ -95,15 +124,20 @@ async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user),
             boost = await ImprovementsDAO.add(**boost_data)
         else:
             boost = await ImprovementsDAO.edit(boost_id, **boost_data)
-        # пересчитать blocks_balance, blocks_per_sec, blocks_per_click, boost.level
+
+        # пересчитать в Redis blocks_balance, blocks_per_sec, blocks_per_click, boost.level
         await recalculate_user_data(current_user, boost_name, boost_price, boost_value, redis_client)
-        return boost
+        boost_data = dict(boost)
+        keys_to_remove = ["id", "user_id", "purchase_date", "redis_key"]
+        [boost_data.pop(key, None) for key in keys_to_remove]
+        return boost_data
     else:
         raise NotEnoughFundsException
 
 
 @router.get("/buy/{boost_name}")
 async def buy_boost(boost_name: str, user: Users = Depends(get_current_user), redis=Depends(get_redis)):
+    """Покупка улучшения за USDT."""
     # TODO
     pass
 
@@ -118,6 +152,24 @@ async def add_boost(
         image_id: Optional[int] = None,
         current_user=Depends(get_current_user)
 ):
+    """
+    Добавляет новое улучшение для пользователя. Доступно только для администратора.
+
+    Args:
+        user_id (int): Идентификатор пользователя, для которого добавляется улучшение.
+        name (str): Название улучшения.
+        purchase_date (date): Дата покупки улучшения.
+        level (int): Уровень улучшения.
+        redis_key (str): Ключ в Redis, связанный с улучшением.
+        image_id (Optional[int], optional): Идентификатор изображения улучшения. По умолчанию None.
+        current_user: Текущий пользователь.
+
+    Returns:
+        dict: Содержит сообщение о результате добавления улучшения.
+
+    Raises:
+        AccessDeniedException: Если текущий пользователь не имеет прав администратора.
+    """
     if current_user["role"] != "admin":
         raise AccessDeniedException
 
@@ -134,6 +186,20 @@ async def add_boost(
 
 @router.delete("/boost/{boost_id}")
 async def delete_boost(boost_id: int, current_user=Depends(get_current_user)):
+    """
+    Удаляет улучшение по его идентификатору. Доступно только для администратора.
+
+    Args:
+        boost_id (int): Идентификатор удаляемого улучшения.
+        current_user: Текущий пользователь.
+
+    Returns:
+        dict: Содержит сообщение о результате удаления улучшения.
+
+    Raises:
+        AccessDeniedException: Если текущий пользователь не имеет прав администратора.
+        ObjectNotFoundException: Если улучшение с указанным идентификатором не найдено.
+    """
     if current_user["role"] != "admin":
         raise AccessDeniedException
 
