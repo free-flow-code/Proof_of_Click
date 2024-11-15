@@ -27,7 +27,7 @@ async def load_boosts(redis_client):
     Все значения находятся в boost:{boost_name}:data и сериализованы с помощью json.dumps.
     """
     name_boosts = []
-    with open("app/boosts.json", "r", encoding="utf-8") as file:
+    with open("app/game_data/boosts.json", "r", encoding="utf-8") as file:
         boosts = json.loads(file.read())
         for boost in boosts:
             for boost_name, boost_details in boost.items():

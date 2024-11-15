@@ -76,3 +76,7 @@ class IncorrectEmailCodeException(PoCException):
 class NotEnoughFundsException(PoCException):
     status_code = status.HTTP_409_CONFLICT
     detail = "Not enough funds."  # недостаточно средств
+
+class ValueException(PoCException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Cannot get value"

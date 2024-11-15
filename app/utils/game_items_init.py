@@ -132,7 +132,7 @@ async def create_game_items(redis_client):
     Returns:
         None
     """
-    with open("app/game_items.json", "r", encoding="utf-8") as file:
+    with open("app/game_data/game_items.json", "r", encoding="utf-8") as file:
         items = json.loads(file.read())
         item_keys = []
         for game_item in items:

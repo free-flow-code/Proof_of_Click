@@ -16,6 +16,7 @@ from app.improvements.router import router as improvements_router
 from app.lots.router import router as lots_router
 from app.notifications.router import router as notification_router
 from app.clicks.router import router as clicks_router
+from app.general_app_data.router import router as general_app_data_router
 
 logging.basicConfig(
         level=logging.DEBUG,
@@ -49,6 +50,7 @@ app.include_router(improvements_router)
 app.include_router(lots_router)
 app.include_router(notification_router)
 app.include_router(clicks_router)
+app.include_router(general_app_data_router)
 
 origins = settings.ORIGINS
 
