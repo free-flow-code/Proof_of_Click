@@ -2,7 +2,7 @@ import asyncio
 from celery import shared_task
 
 from app.redis_init import get_redis
-from app.data_processing_funcs import set_mining_chance
+from app.utils.data_processing_funcs import set_mining_chance
 
 
 @shared_task(name="set_mining_chance")

@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Optional
 from app.tasks.tasks import add_items_to_db
-from app.game_items_init import get_items_registry
+from app.utils.game_items_init import get_items_registry
 
 
 async def calculate_items_won(user_id: int, count_clicks: int, redis_client) -> Optional[int]:

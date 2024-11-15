@@ -4,7 +4,7 @@ from fastapi import APIRouter, Response, Depends, HTTPException, status
 
 from app.config import settings
 from app.redis_init import get_redis
-from app.data_processing_funcs import add_user_data_to_redis
+from app.utils.data_processing_funcs import add_user_data_to_redis
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
 from app.users.dao import UsersDAO
 from app.users.auth import authenticate_user, add_user, create_access_token, get_password_from_hash

@@ -7,9 +7,9 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.redis_init import init_redis
-from app.data_processing_funcs import load_boosts, load_all_users_balances
-from app.mining_chance_init import set_mining_chance
-from app.game_items_init import create_game_items
+from app.utils.data_processing_funcs import load_boosts, load_all_users_balances
+from app.utils.mining_chance_init import set_mining_chance
+from app.utils.game_items_init import create_game_items
 from app.game_items.router import router as items_router
 from app.users.router import router as users_router
 from app.improvements.router import router as improvements_router

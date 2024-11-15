@@ -7,7 +7,7 @@ from app.users.dependencies import get_current_user
 from app.exceptions import ClicksDataException
 from app.redis_init import get_redis
 from app.clicks.calculate_funcs import calculate_items_won
-from app.mining_chance_init import get_mining_chance_singleton
+from app.utils.mining_chance_init import get_mining_chance_singleton
 
 router = APIRouter(
     prefix="/clicks",
