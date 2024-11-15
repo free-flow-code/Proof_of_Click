@@ -17,6 +17,8 @@ class Settings(BaseSettings):
 
     BACKEND_DOMAIN: str = "http://127.0.0.1:8000"
     FRONTEND_DOMAIN: str = "http://127.0.0.1:3000"
+    SEND_CLICKS_PERIOD: int = 3
+
     ENCRYPTION_KEY: str
     JWT_SECRET_KEY: str
     ALGORITHM: str = "HS256"

@@ -3,22 +3,7 @@ import json
 from datetime import date
 
 from app.users.models import UserRole
-from app.config import settings
 from app.users.dao import UsersDAO
-
-
-async def set_mining_chance(redis_client):
-    """Подсчитывает вероятность добычи блока и записывает значение в redis.
-
-    Вероятность это число от 0 до 1, с 4 знаками после запятой.
-    Рекомендуется обновлять раз в час.
-    """
-    users_with_balances = await redis_client.zrange("users_balances", 0, -1, withscores=True)
-    total_balance = sum(balance for user, balance in users_with_balances)
-    await redis_client.set(
-        "mining_chance",
-        round((1 - total_balance / settings.MAX_BLOCKS), 4)
-    )
 
 
 def sanitize_dict_for_redis(user_data: dict) -> dict:
