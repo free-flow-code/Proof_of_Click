@@ -14,6 +14,15 @@ router = APIRouter(
 
 @router.get("")
 async def get_user_notifications(current_user=Depends(get_current_user)) -> list[SNotifications]:
+    """
+    Возвращает список уведомлений пользователя.
+
+    Args:
+        current_user: Текущий пользователь.
+
+    Returns:
+        list[SNotifications]: Список уведомлений, принадлежащих текущему пользователю.
+    """
     return await NotificationsDAO.find_by_user_id(int(current_user["id"]))
 
 
@@ -24,6 +33,21 @@ async def add_notification(
         send_date: date,
         current_user=Depends(get_current_user)
 ):
+    """
+    Добавляет новое уведомление для пользователя. Доступно только для администратора.
+
+    Args:
+        user_id (int): Идентификатор пользователя, для которого добавляется уведомление.
+        text (str): Текст уведомления.
+        send_date (date): Дата отправки уведомления.
+        current_user: Текущий пользователь.
+
+    Returns:
+        dict: Содержит сообщение о результате добавления уведомления.
+
+    Raises:
+        AccessDeniedException: Если текущий пользователь не имеет прав администратора.
+    """
     if current_user["role"] != "admin":
         raise AccessDeniedException
 
@@ -37,6 +61,20 @@ async def add_notification(
 
 @router.delete("/{notification_id}")
 async def delete_notification(notification_id: int, current_user=Depends(get_current_user)):
+    """
+    Удаляет уведомление по его идентификатору. Доступно только для администратора.
+
+    Args:
+        notification_id (int): Идентификатор уведомления.
+        current_user: Текущий пользователь.
+
+    Returns:
+        dict: Содержит сообщение о результате удаления уведомления.
+
+    Raises:
+        AccessDeniedException: Если текущий пользователь не имеет прав администратора.
+        ObjectNotFoundException: Если уведомление с указанным идентификатором не найдено.
+    """
     if current_user["role"] != "admin":
         raise AccessDeniedException
 
