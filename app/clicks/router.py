@@ -9,6 +9,8 @@ from app.redis_init import get_redis
 from app.clicks.calculate_funcs import calculate_items_won
 from app.utils.mining_chance_init import get_mining_chance_singleton
 
+from app.utils.rate_limiter import limiter
+
 router = APIRouter(
     prefix="/clicks",
     tags=["Clicks"]
@@ -16,6 +18,7 @@ router = APIRouter(
 
 
 @router.post("")
+@limiter.limit(f"{int(60/settings.SEND_CLICKS_PERIOD)}/minute")  # Ограничение количества запросов с одного ip
 async def receive_clicks(
         request: Request,
         current_user=Depends(get_current_user),

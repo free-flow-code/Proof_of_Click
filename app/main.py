@@ -1,5 +1,6 @@
 import logging
 from fastapi import FastAPI
+from slowapi import Limiter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
@@ -7,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.redis_init import init_redis
+from app.utils.rate_limiter import limiter
 from app.utils.data_processing_funcs import load_boosts, load_all_users_balances
 from app.utils.mining_chance_init import set_mining_chance
 from app.utils.game_items_init import create_game_items
@@ -43,6 +45,7 @@ app = FastAPI(
     title="Proof of Click",
     lifespan=lifespan,
     )
+app.state.limiter: Limiter = limiter  # type: ignore
 
 app.include_router(users_router)
 app.include_router(items_router)
