@@ -1,15 +1,14 @@
 import logging
-from fastapi import APIRouter, Request, Depends
 from json import JSONDecodeError
+from fastapi import APIRouter, Request, Depends
 
 from app.config import settings
-from app.users.dependencies import get_current_user
-from app.exceptions import ClicksDataException
 from app.redis_init import get_redis
+from app.utils.rate_limiter import limiter
+from app.exceptions import ClicksDataException
+from app.users.dependencies import get_current_user
 from app.clicks.calculate_funcs import calculate_items_won
 from app.utils.mining_chance_init import get_mining_chance_singleton
-
-from app.utils.rate_limiter import limiter
 
 router = APIRouter(
     prefix="/clicks",

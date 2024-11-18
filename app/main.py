@@ -9,7 +9,11 @@ from contextlib import asynccontextmanager
 from app.config import settings
 from app.redis_init import init_redis
 from app.utils.rate_limiter import limiter
-from app.utils.data_processing_funcs import load_boosts, load_all_users_balances
+from app.utils.data_processing_funcs import load_boosts
+from app.utils.users_init import (
+    add_top_100_users_to_redis,
+    add_users_with_autoclicker_to_redis
+)
 from app.utils.mining_chance_init import set_mining_chance
 from app.utils.game_items_init import create_game_items
 from app.game_items.router import router as items_router
@@ -36,7 +40,8 @@ async def lifespan(app: FastAPI):
     await load_boosts(redis_client)
     await create_game_items(redis_client)
     await set_mining_chance(redis_client)
-    await load_all_users_balances(redis_client)
+    await add_users_with_autoclicker_to_redis(redis_client)
+    await add_top_100_users_to_redis(redis_client)
     FastAPICache.init(RedisBackend(redis_client), prefix="cache")
     yield
     logging.info("Service exited")

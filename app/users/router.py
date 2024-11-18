@@ -1,20 +1,28 @@
 import logging
-
 from fastapi import APIRouter, Response, Depends, HTTPException, status
 
 from app.config import settings
 from app.redis_init import get_redis
-from app.utils.data_processing_funcs import add_user_data_to_redis
+from app.utils.users_init import add_user_data_to_redis
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
 from app.users.dao import UsersDAO
-from app.users.auth import authenticate_user, add_user, create_access_token, get_password_from_hash
 from app.users.dependencies import get_current_user
-from app.tasks.tasks import send_verify_code_to_email, send_restore_password_to_email
+
+from app.users.auth import (
+    add_user,
+    authenticate_user,
+    create_access_token,
+    get_password_from_hash
+)
+from app.tasks.tasks import (
+    send_verify_code_to_email,
+    send_restore_password_to_email
+)
 from app.exceptions import (
-    IncorrectEmailOrPasswordException,
     AccessDeniedException,
     ObjectNotFoundException,
-    IncorrectEmailCodeException
+    IncorrectEmailCodeException,
+    IncorrectEmailOrPasswordException
 )
 
 
@@ -28,7 +36,7 @@ router = APIRouter(
 async def register_user(response: Response, user_data: SUserAuth, redis=Depends(get_redis)):
     created_user = await add_user(user_data)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user, redis)
+    await add_user_data_to_redis(created_user, redis, redis_ttl=3600)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logging.info(f"User {user_data.username} registered")
 
@@ -37,7 +45,7 @@ async def register_user(response: Response, user_data: SUserAuth, redis=Depends(
 async def register_ref_user(response: Response, user_data: SUserAuth, referral_link: str, redis=Depends(get_redis)):
     created_user = await add_user(user_data, referral_link)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user, redis)
+    await add_user_data_to_redis(created_user, redis, redis_ttl=3600)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logging.info(f"User {user_data.username} registered")
 

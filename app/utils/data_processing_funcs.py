@@ -3,7 +3,6 @@ import json
 from datetime import date
 
 from app.users.models import UserRole
-from app.users.dao import UsersDAO
 
 
 def sanitize_dict_for_redis(user_data: dict) -> dict:
@@ -46,17 +45,3 @@ async def load_boosts(redis_client):
                 await redis_client.hset(f"boost:{boost_name}", mapping={"data": serialized_boost_data})
     await redis_client.set("name_boosts", json.dumps(name_boosts))
     logging.info("Boosts loads successful to redis")
-
-
-async def add_user_data_to_redis(user_data: dict, redis_client):
-    await redis_client.zadd("users_balances", {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)})
-    user_id = user_data.get("id")
-    await redis_client.hset(f"user_data:{user_id}", mapping=user_data)
-    await redis_client.expire(f"user_data:{user_id}", 3600)
-
-
-async def load_all_users_balances(redis_client):
-    """Загружает топ 100 балансов пользователей в redis из БД."""
-    top_users = await UsersDAO.get_top_100_users()
-    for user in top_users:
-        await redis_client.zadd("users_balances", {f"{user.get('username')}": user.get("blocks_balance", 0.0)})

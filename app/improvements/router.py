@@ -103,25 +103,27 @@ async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user),
 
     boost = await redis_client.hgetall(f"boost:{boost_name}")
     boost_details = json.loads(boost["data"])
-    # получить новый уровень покупаемого улучшения для этого юзера
-    level_purchased_boost, boost_id = await get_level_purchased_boost(int(current_user["id"]), boost_name, redis_client)
-
-    # сравнить стоимость улучшения с текущим балансом юзера, добавить/изменить boost
+    user_id = int(current_user["id"])
+    # получить новый уровень и характеристики покупаемого улучшения для этого юзера
+    level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, redis_client)
     boost_level_details = ast.literal_eval(
         boost_details["levels"][f"{level_purchased_boost}"]
     )
     boost_value = int(boost_level_details[1])
     boost_price = float(boost_level_details[0])
+    # сравнить стоимость улучшения с текущим балансом юзера
     if float(current_user["blocks_balance"]) >= boost_price:
         boost_data = {
-            "user_id": int(current_user["id"]),
+            "user_id": user_id,
             "name": boost_name,
             "purchase_date": date.today(),
             "level": level_purchased_boost,
             "redis_key": boost_name
         }
+        # добавить/изменить boost
         if not boost_id:
             boost = await ImprovementsDAO.add(**boost_data)
+            await redis_client.persist(f"user_data:{user_id}")
         else:
             boost = await ImprovementsDAO.edit(boost_id, **boost_data)
 
