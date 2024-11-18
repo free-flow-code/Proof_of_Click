@@ -126,7 +126,7 @@ async def set_items_quantity(items_data: dict, redis_client):
     """
     async with redis_client.pipeline() as pipe:
         for item_name, quantity in items_data.items():
-            await pipe.set(item_name, quantity)
+            await pipe.hset("item_quantities", item_name, quantity)
         await pipe.execute()
 
 
