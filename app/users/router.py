@@ -4,6 +4,7 @@ from app.config import settings
 from app.redis_init import get_redis
 from app.utils.logger_init import logger
 from app.utils.users_init import add_user_data_to_redis
+from app.utils.mining_chance_init import get_mining_chance_singleton
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
 from app.users.dao import UsersDAO
 from app.users.dependencies import get_current_user
@@ -95,16 +96,17 @@ async def logout_user(response: Response):
 
 
 @router.get("/me")
-async def get_me_info(current_user=Depends(get_current_user), redis=Depends(get_redis)):
-    mining_chance = await redis.get("mining_chance")
+async def get_me_info(current_user=Depends(get_current_user)):
+    singleton = get_mining_chance_singleton()
+    mining_chance = singleton.get_value()
     return {
         "username": current_user["username"],
         "mail": current_user["mail"],
         "blocks_balance": float(current_user["blocks_balance"]),
-        "clicks_per_sec": int(float(current_user["clicks_per_sec"])),
+        "clicks_per_sec": int(current_user["clicks_per_sec"]),
         "blocks_per_click": float(current_user["blocks_per_click"]),
         "referral_link": current_user["referral_link"],
-        "mining_chance": float(mining_chance)
+        "mining_chance": mining_chance
     }
 
 
