@@ -1,4 +1,3 @@
-import logging
 import string
 import random
 from jose import jwt
@@ -9,6 +8,7 @@ from pydantic import EmailStr
 from app.config import settings
 from app.users.dao import UsersDAO
 from app.users.schemas import SUserAuth
+from app.utils.logger_init import logger
 from app.exceptions import UsernameAlreadyExistsException, EmailAlreadyExistException
 
 key = settings.ENCRYPTION_KEY
@@ -30,7 +30,7 @@ def verify_password(plain_password, hashed_password) -> bool:
         decrypted_password = get_password_from_hash(hashed_password)
         return plain_password == decrypted_password
     except Exception as e:
-        logging.info(f"Ошибка при расшифровке пароля: {e}")
+        logger.info(f"Ошибка при расшифровке пароля: {e}")
         return False
 
 
@@ -71,7 +71,9 @@ async def add_user(user_data: SUserAuth, referral_link: str = None):
     if not referral_link:
         referer = None
     else:
-        referer = await UsersDAO.find_one_or_none(referral_link=f'{settings.FRONTEND_DOMAIN}/login.html?ref={referral_link}')
+        referer = await UsersDAO.find_one_or_none(
+            referral_link=f'{settings.FRONTEND_DOMAIN}/login.html?ref={referral_link}'
+        )
 
     hashed_password = get_password_hash(user_data.password)
     created_user = await UsersDAO.add(

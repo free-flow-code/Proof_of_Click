@@ -1,8 +1,8 @@
-import logging
 from fastapi import APIRouter, Response, Depends, HTTPException, status
 
 from app.config import settings
 from app.redis_init import get_redis
+from app.utils.logger_init import logger
 from app.utils.users_init import add_user_data_to_redis
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
 from app.users.dao import UsersDAO
@@ -38,7 +38,7 @@ async def register_user(response: Response, user_data: SUserAuth, redis=Depends(
     await login_user(response, user_data)
     await add_user_data_to_redis(created_user, redis, redis_ttl=3600)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
-    logging.info(f"User {user_data.username} registered")
+    logger.info(f"User {user_data.username} registered.")
 
 
 @router.post("/register/{referral_link}")  # TODO refferal_link - do it optional and delete first router?????
@@ -47,7 +47,7 @@ async def register_ref_user(response: Response, user_data: SUserAuth, referral_l
     await login_user(response, user_data)
     await add_user_data_to_redis(created_user, redis, redis_ttl=3600)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
-    logging.info(f"User {user_data.username} registered")
+    logger.info(f"User {user_data.username} registered.")
 
 
 @router.post("/login")
@@ -57,7 +57,7 @@ async def login_user(response: Response, user_data: SUserLogin):
         raise IncorrectEmailOrPasswordException
     access_token = create_access_token({"sub": str(user.id)})
     response.set_cookie("poc_access_token", access_token, httponly=True, secure=settings.SET_COOKIE_SECURE)
-    logging.info(f"User {user.username} logged in")
+    logger.info(f"User {user.username} logged in.")
     return {"access_token": access_token}
 
 

@@ -1,9 +1,9 @@
-import logging
 from json import JSONDecodeError
 from fastapi import APIRouter, Request, Depends
 
 from app.config import settings
 from app.redis_init import get_redis
+from app.utils.logger_init import logger
 from app.utils.rate_limiter import limiter
 from app.exceptions import ClicksDataException
 from app.users.dependencies import get_current_user
@@ -54,7 +54,7 @@ async def receive_clicks(
             # не больше 20 кликов в секунду
             clicks = settings.SEND_CLICKS_PERIOD * 20
     except JSONDecodeError:
-        logging.error("JSONDecodeError while receiving clicks")
+        logger.error("JSONDecodeError while receiving clicks")
         return
 
     singleton = get_mining_chance_singleton()
