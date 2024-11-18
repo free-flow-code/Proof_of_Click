@@ -103,7 +103,7 @@ async def get_me_info(current_user=Depends(get_current_user)):
         "username": current_user["username"],
         "mail": current_user["mail"],
         "blocks_balance": float(current_user["blocks_balance"]),
-        "clicks_per_sec": int(current_user["clicks_per_sec"]),
+        "clicks_per_sec": int(float(current_user["clicks_per_sec"])),
         "blocks_per_click": float(current_user["blocks_per_click"]),
         "referral_link": current_user["referral_link"],
         "mining_chance": mining_chance

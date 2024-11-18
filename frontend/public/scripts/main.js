@@ -37,7 +37,7 @@ async function fetchInitialData() {
       const data = await response.json();
       const { blocks_balance, clicks_per_sec, blocks_per_click } = data;
 
-      clicksPerSec = clicks_per_sec || 1;
+      clicksPerSec = clicks_per_sec || 0;
       blocksPerClick = blocks_per_click || 0.001;
 
       updateBlocksCounter(blocks_balance);

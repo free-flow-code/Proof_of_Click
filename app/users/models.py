@@ -31,7 +31,7 @@ class Users(Base):
     telegram_id = Column(Integer)
     last_update_time = Column(Date)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.user)
-    mail_confirm_code = Column(String, default=str(randint(100000, 999999)))
+    mail_confirm_code = Column(Integer, default=randint(100000, 999999))
     is_confirm_mail = Column(Boolean, default=False)
 
     referred_by = relationship("Users", remote_side=[id], backref="referrals")

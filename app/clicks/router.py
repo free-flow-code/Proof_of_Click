@@ -61,10 +61,10 @@ async def receive_clicks(
     mining_chance = singleton.get_value()
 
     # обновляем баланс пользователя, в зависимости от вероятности добычи блока
-    await redis_client.zadd(
-        "users_balances",
-        {f"{current_user['username']}": round(clicks * float(current_user["blocks_per_click"]) * mining_chance, 3)}
-    )
+    current_balance = await redis_client.zscore("users_balances", current_user["username"])
+    current_balance = float(current_balance) if current_balance else 0.0
+    new_balance = round(current_balance + (clicks * float(current_user["blocks_per_click"]) * mining_chance), 3)
+    await redis_client.zadd("users_balances", {current_user["username"]: new_balance})
 
     # подсчитываем выпали ли игровые предметы и сколько
     count_won_items = await calculate_items_won(int(current_user["id"]), clicks, redis_client)

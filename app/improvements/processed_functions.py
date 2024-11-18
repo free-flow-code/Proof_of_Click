@@ -1,7 +1,11 @@
 import ast
 import json
+from app.users.dao import UsersDAO
 from app.improvements.dao import ImprovementsDAO
 from app.exceptions import BadRequestException
+from app.utils.users_init import add_user_data_to_redis
+
+from app.utils.data_processing_funcs import restore_types_from_redis
 
 
 async def get_level_purchased_boost(user_id: int, boost_name: str, redis_client):
@@ -39,30 +43,47 @@ async def get_level_purchased_boost(user_id: int, boost_name: str, redis_client)
         raise BadRequestException
 
 
-async def recalculate_user_data(user: dict, boost_name: str, boost_price: float, boost_value: int, redis):
+async def recalculate_user_data_in_dbs(
+        current_user: dict,
+        boost_name: str,
+        boost_price: float,
+        boost_value: str,
+        redis_client
+) -> None:
     """
-    Обновляет в Redis значения баланса и улучшений пользователя в зависимости от купленного им улучшения.
+    Обновляет в Redis и базе значения баланса и улучшений пользователя в зависимости от купленного им улучшения.
 
     Args:
-        user (dict): Словарь с данными пользователя, включая `id`, `username` и `blocks_balance`.
+        current_user (dict): Словарь с данными пользователя, включая `id`, `username` и `blocks_balance`.
         boost_name (str): Название купленного улучшения.
         boost_price (float): Цена улучшения.
         boost_value (int): Значение улучшения, устанавливаемое для соответствующего параметра пользователя.
-        redis: Клиент Redis для выполнения асинхронных операций.
+        redis_client: Клиент Redis для выполнения асинхронных операций.
 
     Returns:
         None
+
+    Notes:
+        - Если пользователь покупает не автокликер и у него еще нет автокликера, то время хранения
+          его данных в Redis - 1 час. Иначе - бесконечно. Это нужно для подсчета баланса в фоне.
     """
-    updated_user_balance = round(float(user["blocks_balance"]) - boost_price, 3)
-    await redis.zadd("users_balances", {f"{user['username']}": updated_user_balance})
+    redis_ttl = None
+    if boost_name.lower() != "autoclicker" and not current_user["clicks_per_sec"]:
+        redis_ttl = 3600
 
-    if boost_name == "autoclicker":
-        await redis.hset(f"user_data:{user['id']}", mapping={"clicks_per_sec": boost_value})
-    elif boost_name == "multiplier":
-        await redis.hset(f"user_data:{user['id']}", mapping={"blocks_per_click": boost_value})
+    if boost_name.lower() == "autoclicker":
+        current_user["clicks_per_sec"] = int(boost_value)
+    elif boost_name.lower() == "multiplier":
+        current_user["blocks_per_click"] = float(boost_value)
+
+    current_user["blocks_balance"] = round(float(current_user["blocks_balance"]) - boost_price, 3)
+    await add_user_data_to_redis(current_user, redis_client, redis_ttl)
+    
+    deserialized_data = restore_types_from_redis(current_user)
+    await UsersDAO.edit(int(current_user["id"]), **deserialized_data)
 
 
-async def get_boost_details(boost_name: str, redis, boost_current_lvl=0, language="en"):
+async def get_boost_details(boost_name: str, redis, boost_current_lvl=0, language="en") -> dict:
     """
     Получает характеристики для заданного улучшения из Redis.
 

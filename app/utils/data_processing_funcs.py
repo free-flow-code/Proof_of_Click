@@ -1,5 +1,4 @@
-from datetime import date
-from datetime import datetime
+from datetime import datetime, date
 
 from app.utils.logger_init import logger
 from app.users.models import UserRole
@@ -18,6 +17,40 @@ def sanitize_dict_for_redis(user_data: dict) -> dict:
         )
         for k, v in user_data.items()
     }
+
+
+def restore_types_from_redis(user_data: dict) -> dict:
+    """Восстанавливает оригинальные типы данных после получения из Redis."""
+    return {
+        k: (
+            None if v == "" else
+            True if v == 'True' else
+            False if v == 'False' else
+            int(v) if isinstance(v, str) and v.isdigit() else
+            float(v) if isinstance(v, str) and is_float(v) else
+            datetime.strptime(v, '%Y-%m-%d') if isinstance(v, str) and is_date(v) else
+            v
+        )
+        for k, v in user_data.items()
+    }
+
+
+def is_float(value: str) -> bool:
+    """Проверяет, можно ли преобразовать строку в float."""
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
+def is_date(value: str) -> bool:
+    """Проверяет, можно ли преобразовать строку в дату."""
+    try:
+        datetime.strptime(value, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
 
 
 def log_execution_time_async(func):

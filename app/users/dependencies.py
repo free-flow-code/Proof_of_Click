@@ -59,9 +59,13 @@ async def get_current_user(token: str = Depends(get_token)) -> dict:
         user_data = await redis_client.hgetall(f"user_data:{user_id}")
     else:
         user = await UsersDAO.find_by_model_id(int(user_id))
-        user_data = sanitize_dict_for_redis(user)
-        await add_user_data_to_redis(user_data, redis_client, redis_ttl=3600)
         if not user:
             raise UserIsNotPresentException
+        user_data = sanitize_dict_for_redis(user)
+        # если есть автокликер, то ключ не истекает, для подсчета баланса в фоне
+        if user_data["clicks_per_sec"]:
+            await add_user_data_to_redis(user_data, redis_client)
+        else:
+            await add_user_data_to_redis(user_data, redis_client, redis_ttl=3600)
 
     return user_data

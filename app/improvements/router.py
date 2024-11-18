@@ -9,7 +9,7 @@ from app.users.models import Users
 from app.users.dependencies import get_current_user
 from app.improvements.processed_functions import (
     get_level_purchased_boost,
-    recalculate_user_data,
+    recalculate_user_data_in_dbs,
     get_boost_details
 )
 from app.redis_init import get_redis
@@ -27,7 +27,7 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(get_redis)):
+async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(get_redis)) -> dict:
     """
     Возвращает информацию о всех улучшениях пользователя, включая приобретённые и доступные для покупки.
 
@@ -76,7 +76,11 @@ async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(
 
 
 @router.get("/upgrade/{boost_name}")
-async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user), redis_client=Depends(get_redis)):
+async def upgrade_boost(
+        boost_name: str,
+        current_user=Depends(get_current_user),
+        redis_client=Depends(get_redis)
+) -> dict:
     """
     Покупка улучшения за игровую валюту (blocks).
     Повышает уровень улучшения для пользователя, если достаточно средств на балансе.
@@ -104,12 +108,12 @@ async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user),
     boost = await redis_client.hgetall(f"boost:{boost_name}")
     boost_details = json.loads(boost["data"])
     user_id = int(current_user["id"])
-    # получить новый уровень и характеристики покупаемого улучшения для этого юзера
+    # получить уровень и характеристики ПОКУПАЕМОГО улучшения для этого юзера
     level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, redis_client)
     boost_level_details = ast.literal_eval(
         boost_details["levels"][f"{level_purchased_boost}"]
     )
-    boost_value = int(boost_level_details[1])
+    boost_value = boost_level_details[1]
     boost_price = float(boost_level_details[0])
     # сравнить стоимость улучшения с текущим балансом юзера
     if float(current_user["blocks_balance"]) >= boost_price:
@@ -120,15 +124,14 @@ async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user),
             "level": level_purchased_boost,
             "redis_key": boost_name
         }
-        # добавить/изменить boost
+        # добавить/изменить boost в базе
         if not boost_id:
             boost = await ImprovementsDAO.add(**boost_data)
-            await redis_client.persist(f"user_data:{user_id}")
         else:
             boost = await ImprovementsDAO.edit(boost_id, **boost_data)
+        # пересчитать в Redis blocks_balance, clicks_per_sec, blocks_per_click
+        await recalculate_user_data_in_dbs(current_user, boost_name, boost_price, boost_value, redis_client)
 
-        # пересчитать в Redis blocks_balance, blocks_per_sec, blocks_per_click, boost.level
-        await recalculate_user_data(current_user, boost_name, boost_price, boost_value, redis_client)
         boost_data = dict(boost)
         keys_to_remove = ["id", "user_id", "purchase_date", "redis_key"]
         [boost_data.pop(key, None) for key in keys_to_remove]
