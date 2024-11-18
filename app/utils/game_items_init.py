@@ -1,7 +1,6 @@
 import json
-import logging
-from fastapi import Depends
-from app.redis_init import get_redis
+
+from app.utils.logger_init import logger
 
 
 class GameItem:
@@ -132,6 +131,7 @@ async def create_game_items(redis_client):
     Returns:
         None
     """
+    logger.info("Creating game items has been launched...")
     with open("app/game_data/game_items.json", "r", encoding="utf-8") as file:
         items = json.loads(file.read())
         item_keys = []
@@ -141,7 +141,7 @@ async def create_game_items(redis_client):
                 registry.add_item(item_key, item)
                 item_keys.append(item_key)
         await set_items_quantity(item_keys, redis_client)
-    logging.info("Game items create successful")
+    logger.info("Game items create successful.")
 
 
 async def get_items_registry():

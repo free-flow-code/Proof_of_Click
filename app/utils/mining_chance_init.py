@@ -1,4 +1,5 @@
 from app.config import settings
+from app.utils.logger_init import logger
 
 
 class MiningChanceSingleton:
@@ -33,9 +34,11 @@ async def set_mining_chance(redis_client):
     Returns:
         None
     """
+    logger.info("Mining chance calculation started...")
     users_with_balances = await redis_client.zrange("users_balances", 0, -1, withscores=True)
     total_balance = sum(balance for _, balance in users_with_balances)
 
     mining_chance = round((1 - total_balance / settings.MAX_BLOCKS), 4)
     singleton = get_mining_chance_singleton()
     singleton.set_value(mining_chance)
+    logger.info("Mining chance calculated successfully.")

@@ -1,4 +1,3 @@
-import logging
 from fastapi import FastAPI
 from slowapi import Limiter
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.redis_init import init_redis
+from app.utils.logger_init import logger
 from app.utils.rate_limiter import limiter
 from app.utils.game_items_init import create_game_items
 from app.utils.boosts_init import add_all_boosts_to_redis
@@ -24,17 +24,10 @@ from app.improvements.router import router as improvements_router
 from app.notifications.router import router as notification_router
 from app.general_app_data.router import router as general_app_data_router
 
-logging.basicConfig(
-        level=logging.DEBUG,
-        filename='main_log.log',
-        filemode='w',
-        format='%(asctime)s %(levelname)s %(message)s'
-    )
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logging.info("Service started")
+    logger.info("The application is launched...")
     global redis_client
     redis_client = await init_redis()
     await add_all_boosts_to_redis(redis_client)
@@ -43,8 +36,9 @@ async def lifespan(app: FastAPI):
     await add_users_with_autoclicker_to_redis(redis_client)
     await add_top_100_users_to_redis(redis_client)
     FastAPICache.init(RedisBackend(redis_client), prefix="cache")
+    logger.info("The application has been launched.")
     yield
-    logging.info("Service exited")
+    logger.info("Service exited")
 
 app = FastAPI(
     title="Proof of Click",

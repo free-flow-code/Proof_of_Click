@@ -1,6 +1,8 @@
 from typing import Optional, AsyncIterator
 
 from app.users.dao import UsersDAO
+from app.utils.logger_init import logger
+from app.utils.data_processing_funcs import log_execution_time_async
 from app.utils.data_processing_funcs import sanitize_dict_for_redis
 
 
@@ -48,6 +50,7 @@ async def add_user_data_to_redis(user_data: dict, redis_client, redis_ttl: Optio
         await redis_client.expire(f"user_data:{user_data['id']}", redis_ttl)
 
 
+@log_execution_time_async
 async def add_users_with_autoclicker_to_redis(redis_client) -> None:
     """
     Загружает данные пользователей с автокликером в Redis.
@@ -59,12 +62,15 @@ async def add_users_with_autoclicker_to_redis(redis_client) -> None:
     Args:
         redis_client: Клиент Redis для выполнения операций.
     """
+    logger.info("Adding users with atoclicker to redis has been launched...")
     async for batch in fetch_all_users_by_key(key={"clicks_per_sec": ("!=", 0)}, batch_size=100):
         for record in batch:
             user_data = sanitize_dict_for_redis(record)
             await add_user_data_to_redis(user_data, redis_client)
+    logger.info("Users with atoclicker loads successful to redis.")
 
 
+@log_execution_time_async
 async def add_top_100_users_to_redis(redis_client) -> None:
     """
     Загружает топ 100 балансов пользователей в redis из БД.
@@ -72,6 +78,8 @@ async def add_top_100_users_to_redis(redis_client) -> None:
     Args:
         redis_client: Клиент Redis для выполнения операций.
     """
+    logger.info("Adding top 100 users to redis has been launched...")
     top_users = await UsersDAO.get_top_100_users()
     for user in top_users:
         await redis_client.zadd("users_balances", {f"{user.get('username')}": user.get("blocks_balance", 0.0)})
+    logger.info("Top 100 users loads successful to redis.")

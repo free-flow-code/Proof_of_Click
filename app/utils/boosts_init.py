@@ -1,15 +1,20 @@
-import logging
 import json
 
-from app.utils.data_processing_funcs import sanitize_dict_for_redis
+from app.utils.logger_init import logger
+from app.utils.data_processing_funcs import (
+    log_execution_time_async,
+    sanitize_dict_for_redis
+)
 
 
+@log_execution_time_async
 async def add_all_boosts_to_redis(redis_client):
     """Загружает игровые улучшения в redis.
 
     Все значения находятся в 'boost:{boost_name}: <data>' и сериализованы с помощью json.dumps.
     Список названий всех улучшений в 'name_boosts'.
     """
+    logger.info("Adding boosts to redis has been launched...")
     name_boosts = []
     with open("app/game_data/boosts.json", "r", encoding="utf-8") as file:
         boosts = json.loads(file.read())
@@ -29,4 +34,4 @@ async def add_all_boosts_to_redis(redis_client):
                 serialized_boost_data = json.dumps(boost_data[f"{boost_name}"])
                 await redis_client.hset(f"boost:{boost_name}", mapping={"data": serialized_boost_data})
     await redis_client.set("name_boosts", json.dumps(name_boosts))
-    logging.info("Boosts loads successful to redis")
+    logger.info("Boosts loads successful to redis.")
