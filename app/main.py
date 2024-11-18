@@ -9,19 +9,19 @@ from contextlib import asynccontextmanager
 from app.config import settings
 from app.redis_init import init_redis
 from app.utils.rate_limiter import limiter
-from app.utils.data_processing_funcs import load_boosts
+from app.utils.game_items_init import create_game_items
+from app.utils.boosts_init import add_all_boosts_to_redis
+from app.utils.mining_chance_init import set_mining_chance
 from app.utils.users_init import (
     add_top_100_users_to_redis,
     add_users_with_autoclicker_to_redis
 )
-from app.utils.mining_chance_init import set_mining_chance
-from app.utils.game_items_init import create_game_items
-from app.game_items.router import router as items_router
-from app.users.router import router as users_router
-from app.improvements.router import router as improvements_router
 from app.lots.router import router as lots_router
-from app.notifications.router import router as notification_router
+from app.users.router import router as users_router
 from app.clicks.router import router as clicks_router
+from app.game_items.router import router as items_router
+from app.improvements.router import router as improvements_router
+from app.notifications.router import router as notification_router
 from app.general_app_data.router import router as general_app_data_router
 
 logging.basicConfig(
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     logging.info("Service started")
     global redis_client
     redis_client = await init_redis()
-    await load_boosts(redis_client)
+    await add_all_boosts_to_redis(redis_client)
     await create_game_items(redis_client)
     await set_mining_chance(redis_client)
     await add_users_with_autoclicker_to_redis(redis_client)
