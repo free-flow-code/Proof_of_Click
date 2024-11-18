@@ -1,6 +1,7 @@
 import json
 
 from app.utils.logger_init import logger
+from app.improvements.dao import ImprovementsDAO
 
 
 class GameItem:
@@ -107,17 +108,25 @@ class GameItemsRegistry:
 registry = GameItemsRegistry()
 
 
-async def set_items_quantity(item_keys: list, redis_client):
+async def get_items_quantity(item_keys: list[str]) -> dict:
+    items_data = {}
+    for item_key in item_keys:
+        item_quantity = await ImprovementsDAO.count_records_by_key(name=item_key)
+        items_data[item_key] = item_quantity
+    return items_data
+
+
+async def set_items_quantity(items_data: dict, redis_client):
     """
     Устанавливает начальное количество для игрового предмета в Redis.
 
     Args:
-        item_keys (list): Список ключей предметов.
+        items_data (dict): Словарь с названием предмета и количеством.
         redis_client: Асинхронный клиент Redis для взаимодействия с базой данных.
     """
     async with redis_client.pipeline() as pipe:
-        for key in item_keys:
-            await pipe.hset("item_quantities", key, 0)
+        for item_name, quantity in items_data.items():
+            await pipe.set(item_name, quantity)
         await pipe.execute()
 
 
@@ -140,7 +149,8 @@ async def create_game_items(redis_client):
                 item = GameItem(item_key, **item_details)
                 registry.add_item(item_key, item)
                 item_keys.append(item_key)
-        await set_items_quantity(item_keys, redis_client)
+        items_data = await get_items_quantity(item_keys)
+        await set_items_quantity(items_data, redis_client)
     logger.info("Game items create successful.")
 
 

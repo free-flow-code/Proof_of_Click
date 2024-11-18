@@ -1,4 +1,4 @@
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, insert, update, delete, func
 
 from app.database import async_session_maker
 
@@ -33,6 +33,13 @@ class BaseDAO:
             query = select(cls.model.__table__.columns).filter_by(**filter_by)
             result = await session.execute(query)
             return result.mappings().first()
+
+    @classmethod
+    async def count_records_by_key(cls, **filter_by):
+        async with async_session_maker() as session:
+            query = select(func.count()).select_from(cls.model.__table__).filter_by(**filter_by)
+            result = await session.execute(query)
+            return result.scalar()
 
     @classmethod
     async def find_one_or_none(cls, **filter_by):
