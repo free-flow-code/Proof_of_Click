@@ -109,7 +109,7 @@ async def upgrade_boost(
     boost_details = json.loads(boost["data"])
     user_id = int(current_user["id"])
     # получить уровень и характеристики ПОКУПАЕМОГО улучшения для этого юзера
-    level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, redis_client)
+    level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, boost_details, redis_client)
     boost_level_details = ast.literal_eval(
         boost_details["levels"][f"{level_purchased_boost}"]
     )

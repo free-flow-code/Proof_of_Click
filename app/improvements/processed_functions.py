@@ -8,7 +8,7 @@ from app.utils.users_init import add_user_data_to_redis
 from app.utils.data_processing_funcs import restore_types_from_redis
 
 
-async def get_level_purchased_boost(user_id: int, boost_name: str, redis_client):
+async def get_level_purchased_boost(user_id: int, boost_name: str, boost_details, redis_client):
     """
     Получает уровень, до которого прокачается покупаемое пользователем улучшение (если он его покупал),
      и возвращает его вместе с идентификатором улучшения.
@@ -16,6 +16,7 @@ async def get_level_purchased_boost(user_id: int, boost_name: str, redis_client)
     Args:
         user_id (int): Идентификатор пользователя.
         boost_name (str): Название улучшения.
+        boost_details: Характеристики и описание улучшения.
         redis_client: Клиент Redis для выполнения асинхронных операций.
 
     Returns:
@@ -27,8 +28,6 @@ async def get_level_purchased_boost(user_id: int, boost_name: str, redis_client)
         BadRequestException: Если текущий уровень улучшения пользователя достиг максимального.
     """
     user_boost = await ImprovementsDAO.get_user_boost_by_name(user_id, boost_name)
-    boost = await redis_client.hgetall(f"boost:{boost_name}")
-    boost_details = json.loads(boost["data"])
     boost_max_levels = boost_details["max_levels"]
 
     if not user_boost:
@@ -78,7 +77,7 @@ async def recalculate_user_data_in_dbs(
 
     current_user["blocks_balance"] = round(float(current_user["blocks_balance"]) - boost_price, 3)
     await add_user_data_to_redis(current_user, redis_client, redis_ttl)
-    
+
     deserialized_data = restore_types_from_redis(current_user)
     await UsersDAO.edit(int(current_user["id"]), **deserialized_data)
 

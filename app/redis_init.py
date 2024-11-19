@@ -1,5 +1,6 @@
 import redis as r
-import logging
+
+from app.utils.logger_init import logger
 
 from app.config import settings
 
@@ -12,10 +13,10 @@ async def init_redis():
             decode_responses=True
         )
         await redis_client.ping()
-        logging.info("Redis connected.")
+        logger.info("Redis connected.")
         return redis_client
     except r.exceptions.ConnectionError as err:
-        logging.error(f"Redis connection error: {err}")
+        logger.error(f"Redis connection error: {err}")
         return None
 
 redis_client = None

@@ -109,6 +109,15 @@ registry = GameItemsRegistry()
 
 
 async def get_items_quantity(item_keys: list[str]) -> dict:
+    """
+    Получает количество записей из таблицы игровых предметов по ключам в списке.
+
+    Args:
+        item_keys (list): Список ключей.
+
+    Returns:
+        dict: Словарь вида <ключ>: <количество записей>
+    """
     items_data = {}
     for item_key in item_keys:
         item_quantity = await ImprovementsDAO.count_records_by_key(name=item_key)
