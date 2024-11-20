@@ -5,12 +5,13 @@ from app.redis_init import get_redis
 from app.utils.logger_init import logger
 from app.utils.users_init import add_user_data_to_redis
 from app.utils.mining_chance_init import get_mining_chance_singleton
+from app.utils.data_processing_funcs import get_user_data_tag_in_redis
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
 from app.users.dao import UsersDAO
 from app.users.dependencies import get_current_user
 
 from app.users.auth import (
-    add_user,
+    add_new_user_to_db,
     authenticate_user,
     create_access_token,
     get_password_from_hash
@@ -34,19 +35,19 @@ router = APIRouter(
 
 
 @router.post("/register")
-async def register_user(response: Response, user_data: SUserAuth, redis=Depends(get_redis)):
-    created_user = await add_user(user_data)
+async def register_user(response: Response, user_data: SUserAuth):
+    created_user = await add_new_user_to_db(user_data)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user, redis, redis_ttl=3600)
+    await add_user_data_to_redis(created_user, redis_ttl=3600)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logger.info(f"User {user_data.username} registered.")
 
 
 @router.post("/register/{referral_link}")  # TODO refferal_link - do it optional and delete first router?????
-async def register_ref_user(response: Response, user_data: SUserAuth, referral_link: str, redis=Depends(get_redis)):
-    created_user = await add_user(user_data, referral_link)
+async def register_ref_user(response: Response, user_data: SUserAuth, referral_link: str):
+    created_user = await add_new_user_to_db(user_data, referral_link)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user, redis, redis_ttl=3600)
+    await add_user_data_to_redis(created_user, redis_ttl=3600)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logger.info(f"User {user_data.username} registered.")
 
@@ -85,7 +86,10 @@ async def verify_email(mail_confirm_code: int, current_user=Depends(get_current_
         raise IncorrectEmailCodeException
 
     await UsersDAO.edit(int(current_user["id"]), is_confirm_mail=True)
-    await redis.hset(f"user_data:{current_user['id']}", mapping={"is_confirm_mail": "True"})
+    await redis.hset(
+        f"user_data:{current_user['redis_tag']}:{current_user['id']}",
+        mapping={"is_confirm_mail": "True"}
+    )
     return {"detail": "Email is verify"}
 
 
@@ -132,5 +136,7 @@ async def delete_user(user_id: int, current_user=Depends(get_current_user), redi
         raise ObjectNotFoundException
 
     await UsersDAO.delete(user_id)
-    await redis.delete(f"user_data:{user_id}")
+    redis_tag = await get_user_data_tag_in_redis(user_id, redis)
+    if redis_tag:
+        await redis.delete(f"user_data:{redis_tag}:{user_id}")
     return {"detail": "User deleted successfully"}

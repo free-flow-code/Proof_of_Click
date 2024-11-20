@@ -6,7 +6,7 @@ from fastapi_cache.backends.redis import RedisBackend
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.redis_init import init_redis
+from app.redis_init import init_redis_cluster
 from app.utils.logger_init import logger
 from app.utils.rate_limiter import limiter
 from app.utils.game_items_init import create_game_items
@@ -29,12 +29,13 @@ from app.general_app_data.router import router as general_app_data_router
 async def lifespan(app: FastAPI):
     logger.info("The application is launched...")
     global redis_client
-    redis_client = await init_redis()
-    await add_all_boosts_to_redis(redis_client)
-    await create_game_items(redis_client)
-    await set_mining_chance(redis_client)
-    await add_users_with_autoclicker_to_redis(redis_client)
-    await add_top_100_users_to_redis(redis_client)
+    redis_client = await init_redis_cluster()
+    await add_all_boosts_to_redis()
+    await create_game_items()
+    # TODO добавить балансы всех ползователей в redis
+    await set_mining_chance()
+    await add_users_with_autoclicker_to_redis()
+    await add_top_100_users_to_redis()
     FastAPICache.init(RedisBackend(redis_client), prefix="cache")
     logger.info("The application has been launched.")
     yield

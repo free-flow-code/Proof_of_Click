@@ -1,5 +1,6 @@
-from app.config import settings
 from app.utils.logger_init import logger
+from app.config import settings
+from app.redis_init import get_redis
 
 
 class MiningChanceSingleton:
@@ -20,22 +21,23 @@ class MiningChanceSingleton:
         self._value = value
 
 
-def get_mining_chance_singleton():
+def get_mining_chance_singleton() -> MiningChanceSingleton:
     return MiningChanceSingleton()
 
 
-async def set_mining_chance(redis_client):
+async def set_mining_chance() -> None:
     """
-    Подсчитывает вероятность добычи блока и записывает значение в синглтон.
-
-    Args:
-        redis_client: Клиент Redis для взаимодействия с базой данных.
+    Берет сумму балансов всех пользователей из Redis ("users_balances:{REDIS_NODE_TAG_3}"),
+    подсчитывает вероятность добычи блока и записывает значение в синглтон.
 
     Returns:
         None
     """
     logger.info("Mining chance calculation started...")
-    users_with_balances = await redis_client.zrange("users_balances", 0, -1, withscores=True)
+    redis_client = await get_redis()
+    users_with_balances = await redis_client.zrange(
+        f"users_balances:{settings.REDIS_NODE_TAG_3}", 0, -1, withscores=True
+    )
     total_balance = sum(balance for _, balance in users_with_balances)
 
     mining_chance = round((1 - total_balance / settings.MAX_BLOCKS), 4)

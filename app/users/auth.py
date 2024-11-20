@@ -60,7 +60,7 @@ async def authenticate_user(mail: EmailStr, password: str):
 
 
 # register new user
-async def add_user(user_data: SUserAuth, referral_link: str = None):
+async def add_new_user_to_db(user_data: SUserAuth, referral_link: str = None):
     existing_username = await UsersDAO.find_one_or_none(username=user_data.username)
     if existing_username:
         raise UsernameAlreadyExistsException

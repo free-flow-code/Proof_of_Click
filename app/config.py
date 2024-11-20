@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     ORIGINS: list = ["http://127.0.0.1:8000", "http://127.0.0.1:3000"]
     SET_COOKIE_SECURE: bool = False  # Установите True, если используете HTTPS
 
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
+    REDIS_CLUSTER_HOST: str = "localhost"
+    REDIS_CLUSTER_PORT: int = 7000
 
     SMTP_HOST: str
     SMTP_USER: str
@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     SMTP_PORT: int
 
     MAX_BLOCKS: int
+    REDIS_NODE_TAG_1: str = "{group1}"
+    REDIS_NODE_TAG_2: str = "{group2}"
+    REDIS_NODE_TAG_3: str = "{group3}"
 
 
 settings = Settings()

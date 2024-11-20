@@ -1,7 +1,9 @@
+from typing import Optional
 from datetime import datetime, date
 
 from app.utils.logger_init import logger
 from app.users.models import UserRole
+from app.config import settings
 
 
 def sanitize_dict_for_redis(user_data: dict) -> dict:
@@ -51,6 +53,24 @@ def is_date(value: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+async def get_user_data_tag_in_redis(user_id: int, redis_client) -> Optional[str]:
+    """
+    Проверяет, какой из тегов Redis содержит данные пользователя.
+
+    Args:
+        user_id (int): ID пользователя для поиска данных.
+        redis_client: Клиент Redis для выполнения запросов.
+
+    Returns:
+        Optional[str]: Тег Redis, содержащий данные пользователя, или None, если данные не найдены.
+    """
+    for redis_tag in [settings.REDIS_NODE_TAG_1, settings.REDIS_NODE_TAG_2]:
+        key = f"user_data:{redis_tag}:{user_id}"
+        if await redis_client.exists(key):
+            return redis_tag
+    return None
 
 
 def log_execution_time_async(func):

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from typing import Optional
 from datetime import date
 
+from app.config import settings
 from app.improvements.dao import ImprovementsDAO
 from app.users.models import Users
 from app.users.dependencies import get_current_user
@@ -101,7 +102,7 @@ async def upgrade_boost(
         BadRequestException: Если указанное улучшение не существует.
         NotEnoughFundsException: Если средств на балансе пользователя недостаточно для покупки.
     """
-    all_boosts = await redis_client.get("name_boosts")
+    all_boosts = await redis_client.get(f"name_boosts:{settings.node1_tag}")
     if boost_name not in ast.literal_eval(all_boosts):
         raise BadRequestException
 

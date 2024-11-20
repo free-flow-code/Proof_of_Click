@@ -1,22 +1,29 @@
-import redis as r
+import redis.asyncio as a_redis
+import redis.exceptions as r_exc
 
 from app.utils.logger_init import logger
-
 from app.config import settings
 
 
-async def init_redis():
+async def init_redis_cluster():
     try:
-        redis_client = r.asyncio.from_url(
-            f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
-            encoding="utf8",
-            decode_responses=True
+        redis_client = a_redis.RedisCluster(
+            settings.REDIS_CLUSTER_HOST,
+            settings.REDIS_CLUSTER_PORT,
+            decode_responses=True,
+            require_full_coverage=False  # Убирает требование о покрытии всех слотов (для тестов)
         )
-        await redis_client.ping()
-        logger.info("Redis connected.")
+        cluster_info = await redis_client.cluster_info()
+        if cluster_info.get("cluster_state") == "ok":
+            logger.info("Redis Cluster connected.")
+        else:
+            logger.error("Redis Cluster not ready.")
         return redis_client
-    except r.exceptions.ConnectionError as err:
-        logger.error(f"Redis connection error: {err}")
+    except r_exc.RedisClusterException as err:
+        logger.error(f"Redis Cluster connection error: {err}")
+        return None
+    except Exception as err:
+        logger.error(f"Unexpected error: {err}")
         return None
 
 redis_client = None
@@ -25,5 +32,5 @@ redis_client = None
 async def get_redis():
     global redis_client
     if redis_client is None:
-        redis_client = await init_redis()
+        redis_client = await init_redis_cluster()
     return redis_client
