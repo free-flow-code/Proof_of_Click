@@ -36,11 +36,12 @@ async def set_mining_chance() -> None:
     """
     redis_client = await get_redis()
     mining_chance = 1
+    key = f"users_balances:{settings.REDIS_NODE_TAG_3}"
 
-    if await redis_client.exists(f"users_balances:{settings.REDIS_NODE_TAG_3}"):
+    if await redis_client.exists(key):
         logger.info("Mining chance calculation started...")
         script = redis_client.register_script(total_sum_script)
-        total_sum = await script()
+        total_sum = await script(keys=[key])
         mining_chance = round((1 - total_sum / settings.MAX_BLOCKS), 4)
 
     singleton = get_mining_chance_singleton()

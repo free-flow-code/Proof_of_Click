@@ -17,6 +17,7 @@ from app.utils.game_items_init import (
     set_items_quantity_in_redis
 )
 from app.utils.users_init import (
+    add_top_100_users_to_redis,
     add_all_users_balances_to_redis,
     add_users_with_autoclicker_to_redis
 )
@@ -40,6 +41,7 @@ async def lifespan(app: FastAPI):
         await add_all_boosts_to_redis()
         await set_items_quantity_in_redis()
         await add_all_users_balances_to_redis()
+        await add_top_100_users_to_redis()
         await add_users_with_autoclicker_to_redis()
 
     await set_mining_chance()

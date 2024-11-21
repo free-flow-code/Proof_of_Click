@@ -1,12 +1,12 @@
 from typing import Optional, AsyncIterator
 
+from app.config import settings
 from app.users.dao import UsersDAO
+from app.redis_init import get_redis
 from app.utils.logger_init import logger
+from app.redis_helpers.lua_scripts import top_users_script
 from app.utils.data_processing_funcs import log_execution_time_async
 from app.utils.data_processing_funcs import sanitize_dict_for_redis
-
-from app.config import settings
-from app.redis_init import get_redis
 
 
 async def fetch_all_users_by_key(key: dict, batch_size: int = 100) -> AsyncIterator[list]:
@@ -101,3 +101,59 @@ async def add_all_users_balances_to_redis(batch_size: int = 100) -> None:
                 )
                 offset += batch_size
         logger.info("All users balances loads successful to redis.")
+
+
+async def get_top_users(top_n: int, zset_key: str, redis_client) -> list[list[str, str]]:
+    """
+    Получает топ N пользователей из Redis ZSET с использованием скрипта Lua.
+
+    Args:
+        top_n (int): Количество пользователей, которых нужно выбрать.
+        zset_key (str): Ключ ZSET в Redis, содержащий данные пользователей.
+        redis_client: Клиент для взаимодействия с Redis.
+
+    Returns:
+        list[list[str, str]]: Список списков, где каждый элемент содержит имя пользователя и его баланс.
+    """
+    script = redis_client.register_script(top_users_script)
+    result = await script(keys=[zset_key], args=[top_n])
+    return result
+
+
+async def get_top_100_users() -> dict:
+    """
+    Получает топ-100 пользователей с их балансами из Redis.
+
+    Returns:
+        dict: Словарь, где ключи — это имена пользователей, а значения — их балансы.
+    """
+    redis_client = await get_redis()
+    key = f"users_balances:{settings.REDIS_NODE_TAG_3}"
+
+    top_users = {}
+    if await redis_client.exists(f"{key}"):
+        users = await get_top_users(100, key, redis_client)
+        top_users = {}
+
+        for user in users:
+            username = user[0]
+            balance = float(user[1])
+            top_users[username] = balance
+
+    return top_users
+
+
+async def add_top_100_users_to_redis() -> None:
+    """
+    Добавляет топ-100 пользователей с их балансами в Redis с временем жизни ключа в 10 секунд.
+
+    Returns:
+        None
+    """
+    redis_client = await get_redis()
+
+    await redis_client.hset(
+        f"top_100:{settings.REDIS_NODE_TAG_3}",
+        mapping=get_top_100_users()
+    )
+    await redis_client.expire(f"top_100:{settings.REDIS_NODE_TAG_3}", 10)
