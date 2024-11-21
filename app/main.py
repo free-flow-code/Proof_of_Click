@@ -20,7 +20,7 @@ from app.lots.router import router as lots_router
 from app.users.router import router as users_router
 from app.clicks.router import router as clicks_router
 from app.game_items.router import router as items_router
-from app.improvements.router import router as improvements_router
+from app.boosts.router import router as improvements_router
 from app.notifications.router import router as notification_router
 from app.general_app_data.router import router as general_app_data_router
 

@@ -4,7 +4,7 @@ import enum
 from random import randint
 
 from app.database import Base
-from app.improvements.models import Improvements
+from app.boosts.models import Improvements
 from app.notifications.models import Notifications
 
 

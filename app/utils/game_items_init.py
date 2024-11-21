@@ -3,7 +3,7 @@ import json
 from app.utils.logger_init import logger
 from app.config import settings
 from app.redis_init import get_redis
-from app.improvements.dao import ImprovementsDAO
+from app.boosts.dao import ImprovementsDAO
 
 
 class GameItem:

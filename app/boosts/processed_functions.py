@@ -1,14 +1,20 @@
 import ast
 import json
+from typing import Optional, Tuple
+
+from app.config import settings
 from app.users.dao import UsersDAO
-from app.improvements.dao import ImprovementsDAO
+from app.boosts.dao import ImprovementsDAO
 from app.exceptions import BadRequestException
 from app.utils.users_init import add_user_data_to_redis
-
 from app.utils.data_processing_funcs import restore_types_from_redis
 
 
-async def get_level_purchased_boost(user_id: int, boost_name: str, boost_details, redis_client):
+async def get_level_purchased_boost(
+        user_id: int,
+        boost_name: str,
+        boost_details: dict
+) -> Optional[Tuple[int, Optional[int]]]:
     """
     Получает уровень, до которого прокачается покупаемое пользователем улучшение (если он его покупал),
      и возвращает его вместе с идентификатором улучшения.
@@ -17,7 +23,6 @@ async def get_level_purchased_boost(user_id: int, boost_name: str, boost_details
         user_id (int): Идентификатор пользователя.
         boost_name (str): Название улучшения.
         boost_details: Характеристики и описание улучшения.
-        redis_client: Клиент Redis для выполнения асинхронных операций.
 
     Returns:
         tuple: Кортеж, содержащий:
@@ -46,8 +51,7 @@ async def recalculate_user_data_in_dbs(
         current_user: dict,
         boost_name: str,
         boost_price: float,
-        boost_value: str,
-        redis_client
+        boost_value: str
 ) -> None:
     """
     Обновляет в Redis и базе значения баланса и улучшений пользователя в зависимости от купленного им улучшения.
@@ -57,7 +61,6 @@ async def recalculate_user_data_in_dbs(
         boost_name (str): Название купленного улучшения.
         boost_price (float): Цена улучшения.
         boost_value (int): Значение улучшения, устанавливаемое для соответствующего параметра пользователя.
-        redis_client: Клиент Redis для выполнения асинхронных операций.
 
     Returns:
         None
@@ -76,7 +79,10 @@ async def recalculate_user_data_in_dbs(
         current_user["blocks_per_click"] = float(boost_value)
 
     current_user["blocks_balance"] = round(float(current_user["blocks_balance"]) - boost_price, 3)
-    await add_user_data_to_redis(current_user, redis_client, redis_ttl)
+    await add_user_data_to_redis(current_user, redis_ttl)
+
+    if current_user.get("redis_tag", None):
+        del current_user["redis_tag"]
 
     deserialized_data = restore_types_from_redis(current_user)
     await UsersDAO.edit(int(current_user["id"]), **deserialized_data)
@@ -107,7 +113,7 @@ async def get_boost_details(boost_name: str, redis, boost_current_lvl=0, languag
             если достигнут максимальный уровень.
             - usdt_price (float): Цена улучшения в USDT.
     """
-    boost = await redis.hgetall(f"boost:{boost_name}")
+    boost = await redis.hgetall(f"boost:{settings.REDIS_NODE_TAG_1}:{boost_name}")
     boost_details = json.loads(boost["data"])
 
     if not boost_current_lvl:
@@ -130,9 +136,9 @@ async def get_boost_details(boost_name: str, redis, boost_current_lvl=0, languag
     return {
         "current_level": boost_current_lvl,
         "image_id": boost_details["image_id"],
-        "boost_title": boost_details[f"name_{language}"],
-        "description": boost_details[f"description_{language}"],
-        "characteristic": boost_details[f"characteristic_{language}"],
+        "boost_title": boost_details.get(f"name_{language}") or boost_details["name_en"],
+        "description": boost_details.get(f"description_{language}") or boost_details["description_en"],
+        "characteristic": boost_details.get(f"characteristic_{language}") or boost_details["characteristic_en"],
         "current_value": boost_current_value,
         "max_value": boost_max_value,
         "next_lvl_value": boost_next_lvl_value,

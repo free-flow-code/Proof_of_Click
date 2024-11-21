@@ -23,21 +23,21 @@ def upgrade():
     # Добавить временный столбец с типом JSON
     op.add_column('users', sa.Column('improvements_temp', postgresql.JSON, nullable=True))
 
-    # Преобразовать данные из improvements в improvements_temp
+    # Преобразовать данные из boosts в improvements_temp
     op.execute("""
         UPDATE users 
         SET improvements_temp = 
             CASE 
-                WHEN improvements IS NULL THEN '[]'::json
-                ELSE json_build_array(improvements)
+                WHEN boosts IS NULL THEN '[]'::json
+                ELSE json_build_array(boosts)
             END
     """)
 
     # Удалить старый столбец
-    op.drop_column('users', 'improvements')
+    op.drop_column('users', 'boosts')
 
-    # Переименовать временный столбец в improvements
-    op.alter_column('users', 'improvements_temp', new_column_name='improvements')
+    # Переименовать временный столбец в boosts
+    op.alter_column('users', 'improvements_temp', new_column_name='boosts')
 
 def downgrade():
     # Добавить обратно старый столбец с типом Integer (или другим подходящим типом)
@@ -48,13 +48,13 @@ def downgrade():
         UPDATE users 
         SET improvements_old = 
             CASE 
-                WHEN improvements IS NULL THEN NULL
-                ELSE (improvements->>0)::integer
+                WHEN boosts IS NULL THEN NULL
+                ELSE (boosts->>0)::integer
             END
     """)
 
-    # Удалить столбец improvements
-    op.drop_column('users', 'improvements')
+    # Удалить столбец boosts
+    op.drop_column('users', 'boosts')
 
-    # Переименовать временный столбец обратно в improvements
-    op.alter_column('users', 'improvements_old', new_column_name='improvements')
+    # Переименовать временный столбец обратно в boosts
+    op.alter_column('users', 'improvements_old', new_column_name='boosts')

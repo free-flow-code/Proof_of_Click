@@ -13,7 +13,7 @@ from app.database import Base, DATABASE_URL
 from app.users.models import Users
 from app.lots.models import Lots
 from app.game_items.models import GameItems
-from app.improvements.models import Improvements
+from app.boosts.models import Improvements
 from app.notifications.models import Notifications
 
 # this is the Alembic Config object, which provides

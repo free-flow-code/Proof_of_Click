@@ -4,7 +4,7 @@ from app.database import Base
 
 # Boosts
 class Improvements(Base):
-    __tablename__ = "improvements"
+    __tablename__ = "boosts"
 
     id = Column(Integer, primary_key=True)
     user_id = Column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)

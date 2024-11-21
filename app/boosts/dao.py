@@ -2,7 +2,7 @@ from sqlalchemy import select
 
 from app.database import async_session_maker
 from app.dao.base import BaseDAO
-from app.improvements.models import Improvements
+from app.boosts.models import Improvements
 
 
 class ImprovementsDAO(BaseDAO):

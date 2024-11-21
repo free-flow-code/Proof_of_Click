@@ -1,19 +1,19 @@
 import ast
 import json
-from fastapi import APIRouter, Depends
-from typing import Optional
 from datetime import date
+from typing import Optional
+from fastapi import APIRouter, Depends
 
 from app.config import settings
-from app.improvements.dao import ImprovementsDAO
+from app.redis_init import get_redis
+from app.boosts.dao import ImprovementsDAO
 from app.users.models import Users
 from app.users.dependencies import get_current_user
-from app.improvements.processed_functions import (
+from app.boosts.processed_functions import (
     get_level_purchased_boost,
     recalculate_user_data_in_dbs,
     get_boost_details
 )
-from app.redis_init import get_redis
 from app.exceptions import (
     AccessDeniedException,
     ObjectNotFoundException,
@@ -28,16 +28,21 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(get_redis)) -> dict:
+async def get_user_boosts(
+        language: str = "en",
+        current_user=Depends(get_current_user),
+        redis_client=Depends(get_redis)
+) -> dict:
     """
     Возвращает информацию о всех улучшениях пользователя, включая приобретённые и доступные для покупки.
 
     Args:
+        language (str): Язык описания бустов.
         current_user: Текущий пользователь.
-        redis: Клиент Redis, для выполнения асинхронных операций.
+        redis_client: Клиент Redis, для выполнения асинхронных операций.
 
     Returns:
-        dict: Словарь с данными по улучшениям пользователя, включая:
+        dict: Словарь с данными по улучшениям пользователя, включающий:
             - boosts (list): Список словарей с информацией по каждому улучшению:
                 - Для приобретённых улучшений включены текущие характеристики и уровень.
                 - Для доступных улучшений включены базовые характеристики.
@@ -50,8 +55,9 @@ async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(
             boost = dict(user_boost.items())
             boost[f"{boost['name']}"] = await get_boost_details(
                 f"{boost['name']}",
-                redis,
-                boost_current_lvl=boost["level"]
+                redis_client,
+                boost_current_lvl=boost["level"],
+                language=language
             )
 
             keys_to_remove = ["id", "user_id", "name", "purchase_date", "level", "redis_key", "image_id"]
@@ -63,13 +69,13 @@ async def get_user_boosts(current_user=Depends(get_current_user), redis=Depends(
     for boost in data["boosts"]:
         boost_name = tuple(boost.keys())
         user_boosts_names.add(*boost_name)
-    all_boosts = await redis.get("name_boosts")
+    all_boosts = await redis_client.get(f"name_boosts:{settings.REDIS_NODE_TAG_1}")
     all_boosts_names = set(ast.literal_eval(all_boosts))
     not_user_boosts_names = all_boosts_names - user_boosts_names
 
     for boost_name in not_user_boosts_names:
         boost = dict()
-        boost[f"{boost_name}"] = await get_boost_details(boost_name, redis)
+        boost[f"{boost_name}"] = await get_boost_details(boost_name, redis_client, language=language)
         data["boosts"].append(boost)
 
     data["boosts"] = sorted(data["boosts"], key=lambda d: list(d.keys())[0])
@@ -102,15 +108,15 @@ async def upgrade_boost(
         BadRequestException: Если указанное улучшение не существует.
         NotEnoughFundsException: Если средств на балансе пользователя недостаточно для покупки.
     """
-    all_boosts = await redis_client.get(f"name_boosts:{settings.node1_tag}")
+    all_boosts = await redis_client.get(f"name_boosts:{settings.REDIS_NODE_TAG_1}")
     if boost_name not in ast.literal_eval(all_boosts):
         raise BadRequestException
 
-    boost = await redis_client.hgetall(f"boost:{boost_name}")
+    boost = await redis_client.hgetall(f"boost:{settings.REDIS_NODE_TAG_1}:{boost_name}")
     boost_details = json.loads(boost["data"])
     user_id = int(current_user["id"])
     # получить уровень и характеристики ПОКУПАЕМОГО улучшения для этого юзера
-    level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, boost_details, redis_client)
+    level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, boost_details)
     boost_level_details = ast.literal_eval(
         boost_details["levels"][f"{level_purchased_boost}"]
     )
@@ -131,7 +137,7 @@ async def upgrade_boost(
         else:
             boost = await ImprovementsDAO.edit(boost_id, **boost_data)
         # пересчитать в Redis blocks_balance, clicks_per_sec, blocks_per_click
-        await recalculate_user_data_in_dbs(current_user, boost_name, boost_price, boost_value, redis_client)
+        await recalculate_user_data_in_dbs(current_user, boost_name, boost_price, boost_value)
 
         boost_data = dict(boost)
         keys_to_remove = ["id", "user_id", "purchase_date", "redis_key"]
