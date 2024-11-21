@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     REDIS_NODE_TAG_1: str = "{group1}"
     REDIS_NODE_TAG_2: str = "{group2}"
     REDIS_NODE_TAG_3: str = "{group3}"
+    START_INIT_FUNCS: bool = True
 
 
 settings = Settings()

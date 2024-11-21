@@ -127,14 +127,15 @@ async def get_items_quantity_from_db(item_keys: list[str]) -> dict:
     return items_data
 
 
-async def set_items_quantity_in_redis(items_data: dict, redis_client):
+async def set_items_quantity_in_redis():
     """
-    Устанавливает начальное количество для игрового предмета в Redis.
+    Устанавливает начальное количество для каждого игрового предмета в Redis.
+    """
+    redis_client = await get_redis()
+    items_registry = await get_items_registry()
+    item_keys = list(items_registry.get_all_items().keys())
+    items_data = await get_items_quantity_from_db(item_keys)
 
-    Args:
-        items_data (dict): Словарь с названием предмета и количеством.
-        redis_client: Асинхронный клиент Redis для взаимодействия с базой данных.
-    """
     async with redis_client.pipeline() as pipe:
         for item_name, quantity in items_data.items():
             await pipe.hset(f"item_quantities:{settings.REDIS_NODE_TAG_1}", item_name, quantity)
@@ -149,7 +150,6 @@ async def create_game_items() -> None:
         None
     """
     logger.info("Creating game items has been launched...")
-    redis_client = await get_redis()
     with open("app/game_data/game_items.json", "r", encoding="utf-8") as file:
         items = json.loads(file.read())
         item_keys = []
@@ -158,8 +158,6 @@ async def create_game_items() -> None:
                 item = GameItem(item_key, **item_details)
                 registry.add_item(item_key, item)
                 item_keys.append(item_key)
-        items_data = await get_items_quantity_from_db(item_keys)
-        await set_items_quantity_in_redis(items_data, redis_client)
     logger.info("Game items create successful.")
 
 
