@@ -7,9 +7,11 @@ class BaseDAO:
     model = None
 
     @classmethod
-    async def find_all(cls):
+    async def find_all(cls, offset: int = 0, limit: int = None):
         async with async_session_maker() as session:
             query = select(cls.model.__table__.columns)
+            if limit is not None:
+                query = query.offset(offset).limit(limit)
             result = await session.execute(query)
             return result.mappings().all()
 

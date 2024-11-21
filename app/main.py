@@ -13,7 +13,7 @@ from app.utils.game_items_init import create_game_items
 from app.utils.boosts_init import add_all_boosts_to_redis
 from app.utils.mining_chance_init import set_mining_chance
 from app.utils.users_init import (
-    add_top_100_users_to_redis,
+    add_all_users_balances_to_redis,
     add_users_with_autoclicker_to_redis
 )
 from app.lots.router import router as lots_router
@@ -32,10 +32,9 @@ async def lifespan(app: FastAPI):
     redis_client = await init_redis_cluster()
     await add_all_boosts_to_redis()
     await create_game_items()
-    # TODO добавить балансы всех ползователей в redis
+    await add_all_users_balances_to_redis()
     await set_mining_chance()
     await add_users_with_autoclicker_to_redis()
-    await add_top_100_users_to_redis()
     FastAPICache.init(RedisBackend(redis_client), prefix="cache")
     logger.info("The application has been launched.")
     yield

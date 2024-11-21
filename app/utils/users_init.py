@@ -43,7 +43,11 @@ async def add_user_data_to_redis(user_data: dict, redis_ttl: Optional[int] = Non
         redis_ttl (Optional[int]): Время жизни ключа в секундах. Если None, TTL не устанавливается.
     """
     redis_client = await get_redis()
-    # await redis_client.zadd(f"users_balances:{settings.node1_tag}", {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)})
+    # Обновить баланс
+    await redis_client.zadd(
+        f"users_balances:{settings.REDIS_NODE_TAG_3}",
+        {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)}
+    )
     # Установить redis_tag по умолчанию, если он не указан
     redis_tag = user_data.get('redis_tag', settings.REDIS_NODE_TAG_1)
     user_id = user_data["id"]
@@ -76,13 +80,24 @@ async def add_users_with_autoclicker_to_redis() -> None:
 
 
 @log_execution_time_async
-async def add_top_100_users_to_redis() -> None:
+async def add_all_users_balances_to_redis(batch_size: int = 100) -> None:
     """
-    Загружает топ 100 балансов пользователей в redis из БД.
+    Загружает балансы всех пользователей в redis из БД.
+    Для дальнейшего подсчета mining_chance и составления таблицы лидеров.
     """
-    logger.info("Adding top 100 users to redis has been launched...")
     redis_client = await get_redis()
-    top_users = await UsersDAO.get_top_100_users()
-    # for user in top_users:
-        # await redis_client.zadd(f"users_balances:{settings.node1_tag}", {f"{user.get('username')}": user.get("blocks_balance", 0.0)})
-    logger.info("Top 100 users loads successful to redis.")
+    if not await redis_client.exists(f"users_balances:{settings.REDIS_NODE_TAG_3}"):
+        logger.info("Adding all users balances to redis has been launched...")
+
+        offset = 0
+        while True:
+            records = await UsersDAO.find_all(offset=offset, limit=batch_size)
+            if not records:
+                break
+            for user in records:
+                await redis_client.zadd(
+                    f"users_balances:{settings.REDIS_NODE_TAG_3}",
+                    {f"{user.get('username')}": user.get("blocks_balance", 0.0)}
+                )
+                offset += batch_size
+        logger.info("All users balances loads successful to redis.")
