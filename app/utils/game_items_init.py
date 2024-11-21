@@ -115,7 +115,7 @@ async def get_items_quantity_from_db(item_keys: list[str]) -> dict:
     Получает количество записей из таблицы игровых предметов по ключам в списке.
 
     Args:
-        item_keys (list): Список ключей.
+        item_keys (list): Список ключей (названия игровых предметов).
 
     Returns:
         dict: Словарь вида <ключ>: <количество записей>

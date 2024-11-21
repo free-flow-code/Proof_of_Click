@@ -1,5 +1,7 @@
 import numpy as np
 from typing import Optional
+
+from app.config import settings
 from app.tasks.tasks import add_items_to_db
 from app.utils.game_items_init import get_items_registry
 
@@ -21,7 +23,7 @@ async def calculate_items_won(user_id: int, count_clicks: int, redis_client) -> 
         - Если общее количество выпавших предметов превышает максимум, предмет больше не учитывается.
         - Обновления количества предметов и их добавление в базу данных происходят асинхронно.
     """
-    item_quantities = await redis_client.hgetall("item_quantities")
+    item_quantities = await redis_client.hgetall(f"item_quantities:{settings.REDIS_NODE_TAG_1}")
     items_registry = await get_items_registry()
     updates = {}
     total_won = 0
@@ -50,6 +52,6 @@ async def calculate_items_won(user_id: int, count_clicks: int, redis_client) -> 
             )
 
     if updates:
-        await redis_client.hmset("item_quantities", updates)
+        await redis_client.hmset(f"item_quantities:{settings.REDIS_NODE_TAG_1}", updates)
 
     return total_won

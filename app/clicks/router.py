@@ -1,3 +1,4 @@
+from typing import Optional
 from json import JSONDecodeError
 from fastapi import APIRouter, Request, Depends
 
@@ -7,6 +8,7 @@ from app.utils.logger_init import logger
 from app.utils.rate_limiter import limiter
 from app.exceptions import ClicksDataException
 from app.users.dependencies import get_current_user
+from app.utils.users_init import add_user_data_to_redis
 from app.clicks.calculate_funcs import calculate_items_won
 from app.utils.mining_chance_init import get_mining_chance_singleton
 
@@ -22,7 +24,7 @@ async def receive_clicks(
         request: Request,
         current_user=Depends(get_current_user),
         redis_client=Depends(get_redis)
-):
+) -> Optional[dict]:
     """
     Обрабатывает количество кликов, совершённых пользователем, и обновляет баланс,
     а также учитывает выпадение игровых предметов.
@@ -33,7 +35,7 @@ async def receive_clicks(
         redis_client: Клиент Redis для взаимодействия с базой данных.
 
     Returns:
-        dict: Сообщение о результате операции, в том числе о возможном выигрыше предметов.
+        Optional[dict]: Сообщение о возможном выигрыше предметов.
 
     Raises:
         ClicksDataException: Если данные о кликах не были переданы или они некорректны.
@@ -61,10 +63,11 @@ async def receive_clicks(
     mining_chance = singleton.get_value()
 
     # обновляем баланс пользователя, в зависимости от вероятности добычи блока
-    current_balance = await redis_client.zscore("users_balances", current_user["username"])
-    current_balance = float(current_balance) if current_balance else 0.0
-    new_balance = round(current_balance + (clicks * float(current_user["blocks_per_click"]) * mining_chance), 3)
-    await redis_client.zadd("users_balances", {current_user["username"]: new_balance})
+    current_user["blocks_balance"] = round(
+        float(current_user["blocks_balance"]) + (clicks * float(current_user["blocks_per_click"]) * mining_chance),
+        3
+    )
+    await add_user_data_to_redis(current_user)
 
     # подсчитываем выпали ли игровые предметы и сколько
     count_won_items = await calculate_items_won(int(current_user["id"]), clicks, redis_client)
