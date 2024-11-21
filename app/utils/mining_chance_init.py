@@ -1,6 +1,7 @@
 from app.utils.logger_init import logger
 from app.config import settings
 from app.redis_init import get_redis
+from app.redis_helpers.lua_scripts import total_sum_script
 
 
 class MiningChanceSingleton:
@@ -33,14 +34,15 @@ async def set_mining_chance() -> None:
     Returns:
         None
     """
-    logger.info("Mining chance calculation started...")
     redis_client = await get_redis()
-    users_with_balances = await redis_client.zrange(
-        f"users_balances:{settings.REDIS_NODE_TAG_3}", 0, -1, withscores=True
-    )
-    total_balance = sum(balance for _, balance in users_with_balances)
+    mining_chance = 1
 
-    mining_chance = round((1 - total_balance / settings.MAX_BLOCKS), 4)
+    if await redis_client.exists(f"users_balances:{settings.REDIS_NODE_TAG_3}"):
+        logger.info("Mining chance calculation started...")
+        script = redis_client.register_script(total_sum_script)
+        total_sum = await script()
+        mining_chance = round((1 - total_sum / settings.MAX_BLOCKS), 4)
+
     singleton = get_mining_chance_singleton()
     singleton.set_value(mining_chance)
     logger.info("Mining chance calculated successfully.")

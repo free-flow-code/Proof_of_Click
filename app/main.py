@@ -35,7 +35,6 @@ async def lifespan(app: FastAPI):
     global redis_client
     redis_client = await init_redis_cluster()
     await create_game_items()
-    await set_mining_chance()
 
     if settings.START_INIT_FUNCS:
         await add_all_boosts_to_redis()
@@ -43,6 +42,7 @@ async def lifespan(app: FastAPI):
         await add_all_users_balances_to_redis()
         await add_users_with_autoclicker_to_redis()
 
+    await set_mining_chance()
     FastAPICache.init(RedisBackend(redis_client), prefix="cache")
     logger.info("The application has been launched.")
     yield
