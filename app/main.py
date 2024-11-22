@@ -9,11 +9,11 @@ from app.config import settings
 from app.redis_init import init_redis_cluster
 from app.utils.logger_init import logger
 from app.utils.rate_limiter import limiter
-from app.utils.boosts_init import add_all_boosts_to_redis
+from app.utils.boosts_init import add_all_boosts_to_redis, init_game_boosts
 from app.utils.mining_chance_init import set_mining_chance
 
 from app.utils.game_items_init import (
-    create_game_items,
+    init_game_items,
     set_items_quantity_in_redis
 )
 from app.utils.users_init import (
@@ -35,10 +35,11 @@ async def lifespan(app: FastAPI):
     logger.info("The application is launched...")
     global redis_client
     redis_client = await init_redis_cluster()
-    await create_game_items()
+    await init_game_items()
+    await init_game_boosts()
 
     if settings.START_INIT_FUNCS:
-        await add_all_boosts_to_redis()
+        #await add_all_boosts_to_redis()
         await set_items_quantity_in_redis()
         await add_all_users_balances_to_redis()
         await add_top_100_users_to_redis()
