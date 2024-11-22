@@ -8,9 +8,9 @@
       "description_ru": "Каждую секунду автокликер автоматически совершаюет клики, даже когда вы оффлайн. Количество кликов повышается с уровнем автокликера. Время действия: навсегда.",
       "description_en": "Every second, the autoclicker automatically clicks, even when you are offline. The number of clicks increases with the level of the autoclicker. Duration: forever."
     },
-    "characteristics": {
-      "characteristic_ru": "клики в секунду",
-      "characteristic_en": "clicks per second"
+    "properties": {
+      "property_ru": "клики в секунду",
+      "property_en": "clicks per second"
     },
     "usdt_price": 10,
     "image_id": 11,
@@ -36,9 +36,9 @@
       "description_ru": "Увеличивает количество добываемых блоков за клик. Также влияет на автокликер. Время действия: навсегда.",
       "description_en": "Increases the amount of blocks mined per click. Also affects the autoclicker. Duration: permanent."
     },
-    "characteristics": {
-      "characteristic_ru": "блоков за клик",
-      "characteristic_en": "blocks per click"
+    "properties": {
+      "property_ru": "блоков за клик",
+      "property_en": "blocks per click"
     },
     "usdt_price": 10,
     "image_id": 12,

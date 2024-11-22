@@ -9,6 +9,7 @@ from app.redis_init import get_redis
 from app.boosts.dao import ImprovementsDAO
 from app.users.models import Users
 from app.users.dependencies import get_current_user
+from app.utils.boosts_init import get_boosts_registry
 from app.boosts.processed_functions import (
     get_level_purchased_boost,
     recalculate_user_data_in_dbs,
@@ -28,58 +29,55 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_user_boosts(
-        language: str = "en",
-        current_user=Depends(get_current_user),
-        redis_client=Depends(get_redis)
-) -> dict:
+async def get_user_boosts(language: str = "en", current_user=Depends(get_current_user)) -> dict:
     """
     Возвращает информацию о всех улучшениях пользователя, включая приобретённые и доступные для покупки.
 
     Args:
         language (str): Язык описания бустов.
         current_user: Текущий пользователь.
-        redis_client: Клиент Redis, для выполнения асинхронных операций.
 
     Returns:
         dict: Словарь с данными по улучшениям пользователя, включающий:
             - boosts (list): Список словарей с информацией по каждому улучшению:
+                - Где ключи словарей - названия улучшений, а значения - их характеристики.
                 - Для приобретённых улучшений включены текущие характеристики и уровень.
                 - Для доступных улучшений включены базовые характеристики.
     """
     user_boosts = await ImprovementsDAO.find_by_user_id(int(current_user["id"]))
-    data = {}
+    boosts_registry = await get_boosts_registry()
+    user_boosts_names = []
+    summary_data = {}
     boosts = []
+
+    # Получаем данные для текущего уровня улучшений пользователя
     if user_boosts:
         for user_boost in user_boosts:
-            boost = dict(user_boost.items())
-            boost[f"{boost['name']}"] = await get_boost_details(
-                f"{boost['name']}",
-                redis_client,
-                boost_current_lvl=boost["level"],
-                language=language
-            )
-
-            keys_to_remove = ["id", "user_id", "name", "purchase_date", "level", "redis_key", "image_id"]
-            [boost.pop(key, None) for key in keys_to_remove]
+            boost = {
+                user_boost.name: await get_boost_details(
+                    boosts_registry,
+                    user_boost.name,
+                    boost_current_lvl=user_boost.level,
+                    language=language
+                )
+            }
+            user_boosts_names.append(user_boost.name)
             boosts.append(boost)
-    data["boosts"] = boosts
 
-    user_boosts_names = set()
-    for boost in data["boosts"]:
-        boost_name = tuple(boost.keys())
-        user_boosts_names.add(*boost_name)
-    all_boosts = await redis_client.get(f"name_boosts:{settings.REDIS_NODE_TAG_1}")
-    all_boosts_names = set(ast.literal_eval(all_boosts))
-    not_user_boosts_names = all_boosts_names - user_boosts_names
+    summary_data["boosts"] = boosts
 
+    all_boosts_in_game = boosts_registry.get_all_entities().keys()
+    not_user_boosts_names = all_boosts_in_game - user_boosts_names
+
+    # Получаем данные для улучшений, которых нет у пользователя
     for boost_name in not_user_boosts_names:
-        boost = dict()
-        boost[f"{boost_name}"] = await get_boost_details(boost_name, redis_client, language=language)
-        data["boosts"].append(boost)
+        boost = {
+            boost_name: await get_boost_details(boosts_registry, boost_name, language=language)
+        }
+        summary_data["boosts"].append(boost)
 
-    data["boosts"] = sorted(data["boosts"], key=lambda d: list(d.keys())[0])
-    return data
+    summary_data["boosts"] = sorted(summary_data["boosts"], key=lambda d: list(d.keys())[0])
+    return summary_data
 
 
 @router.get("/upgrade/{boost_name}")

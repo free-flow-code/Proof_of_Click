@@ -1,12 +1,10 @@
-import ast
-import json
 from typing import Optional, Tuple
 
-from app.config import settings
 from app.users.dao import UsersDAO
 from app.boosts.dao import ImprovementsDAO
 from app.exceptions import BadRequestException
 from app.utils.users_init import add_user_data_to_redis
+from app.game_data.game_entity_models import GameBoostsRegistry
 from app.utils.data_processing_funcs import restore_types_from_redis
 
 
@@ -88,13 +86,18 @@ async def recalculate_user_data_in_dbs(
     await UsersDAO.edit(int(current_user["id"]), **deserialized_data)
 
 
-async def get_boost_details(boost_name: str, redis, boost_current_lvl=0, language="en") -> dict:
+async def get_boost_details(
+        boosts_registry: GameBoostsRegistry,
+        boost_name: str,
+        boost_current_lvl=0,
+        language="en"
+) -> dict:
     """
-    Получает характеристики для заданного улучшения из Redis.
+    Получает характеристики для заданного улучшения.
 
     Args:
-        boost_name (str): Название улучшения, используемое для поиска данных в Redis.
-        redis: Клиент Redis для выполнения асинхронных операций.
+        boosts_registry: Реестр всех улучшений в игре.
+        boost_name (str): Название улучшения.
         boost_current_lvl (int, optional): Текущий уровень улучшения. По умолчанию 0.
         language (str, optional): Язык для отображения данных улучшения. По умолчанию "en".
 
@@ -113,32 +116,31 @@ async def get_boost_details(boost_name: str, redis, boost_current_lvl=0, languag
             если достигнут максимальный уровень.
             - usdt_price (float): Цена улучшения в USDT.
     """
-    boost = await redis.hgetall(f"boost:{settings.REDIS_NODE_TAG_1}:{boost_name}")
-    boost_details = json.loads(boost["data"])
+    boost = boosts_registry.get_entity(boost_name)
 
     if not boost_current_lvl:
         boost_current_value = 0
     else:
-        boost_current_value = ast.literal_eval(boost_details["levels"][f"{boost_current_lvl}"])[1]
+        boost_current_value = boost["levels"][f"{boost_current_lvl}"][1]
 
-    boost_max_levels = boost_details["max_levels"]
-    boost_max_value = ast.literal_eval(boost_details["levels"][f"{boost_max_levels}"])[1]
-    usdt_price = boost_details["usdt_price"]
+    boost_max_levels = boost["max_levels"]
+    boost_max_value = boost["levels"][f"{boost_max_levels}"][1]
+    usdt_price = boost["usdt_price"]
 
     if boost_current_lvl == boost_max_levels:
         boost_next_lvl_value = None
         boost_next_lvl_price = None
     else:
-        boost_next_lvl_details = ast.literal_eval(boost_details["levels"][f"{boost_current_lvl + 1}"])
+        boost_next_lvl_details = boost["levels"][f"{boost_current_lvl + 1}"]
         boost_next_lvl_value = boost_next_lvl_details[1]
         boost_next_lvl_price = boost_next_lvl_details[0]
 
     return {
         "current_level": boost_current_lvl,
-        "image_id": boost_details["image_id"],
-        "boost_title": boost_details.get(f"name_{language}") or boost_details["name_en"],
-        "description": boost_details.get(f"description_{language}") or boost_details["description_en"],
-        "characteristic": boost_details.get(f"characteristic_{language}") or boost_details["characteristic_en"],
+        "image_id": boost["image_id"],
+        "boost_title": boost["titles"].get(f"name_{language}") or boost["titles"]["name_en"],
+        "description": boost["descriptions"].get(f"description_{language}") or boost["descriptions"]["description_en"],
+        "characteristic": boost["properties"].get(f"property_{language}") or boost["properties"]["property_en"],
         "current_value": boost_current_value,
         "max_value": boost_max_value,
         "next_lvl_value": boost_next_lvl_value,

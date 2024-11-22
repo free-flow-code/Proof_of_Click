@@ -44,10 +44,11 @@ class GameBoost:
         self.name: str = boost_name
         self.titles: dict = kwargs.get("titles")
         self.descriptions: dict = kwargs.get("descriptions")
-        self.characteristics: dict = kwargs.get("characteristics")
+        self.properties: dict = kwargs.get("properties")
         self.usdt_price: int = kwargs.get("usdt_price")
         self.image_id: int = kwargs.get("image_id")
         self.levels: dict = kwargs.get("levels")
+        self.max_levels: int = len(self.levels)
 
     def __str__(self):
         attrs = vars(self)
@@ -81,11 +82,12 @@ class GameRegistry:
         """
         self.items[key] = item
 
-    def get_entity(self, key: str):
+    def get_entity(self, key: str) -> dict:
         """
         Получает сущность из реестра по ключу.
         """
-        return self.items.get(key)
+        item = self.items.get(key)
+        return item.get_all_values()
 
     def get_all_entities(self) -> dict:
         """
@@ -117,7 +119,7 @@ async def get_items_registry() -> GameItemsRegistry:
     Возвращает реестр игровых предметов.
 
     Returns:
-        GameRegistry: Экземпляр реестра игрового предмета.
+        GameItemsRegistry: Экземпляр реестра игрового предмета.
     """
     return items_registry
 
@@ -127,6 +129,6 @@ async def get_boosts_registry() -> GameBoostsRegistry:
     Возвращает реестр игровых улучшений.
 
     Returns:
-        GameRegistry: Экземпляр реестра игрового улучшения.
+        GameBoostsRegistry: Экземпляр реестра игрового улучшения.
     """
     return boosts_registry
