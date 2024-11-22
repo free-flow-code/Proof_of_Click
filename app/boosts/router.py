@@ -145,7 +145,7 @@ async def buy_boost(boost_name: str, user: Users = Depends(get_current_user), re
 
 
 @router.get("/add_improvement")
-async def add_boost(
+async def add_boost_for_user(
         user_id: int,
         name: str,
         purchase_date: date,
@@ -187,7 +187,7 @@ async def add_boost(
 
 
 @router.delete("/boost/{boost_id}")
-async def delete_boost(boost_id: int, current_user=Depends(get_current_user)):
+async def delete_user_boost(boost_id: int, current_user=Depends(get_current_user)):
     """
     Удаляет улучшение по его идентификатору. Доступно только для администратора.
 
