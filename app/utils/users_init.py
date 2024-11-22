@@ -143,17 +143,23 @@ async def get_top_100_users() -> dict:
     return top_users
 
 
-async def add_top_100_users_to_redis() -> None:
+async def add_top_100_users_to_redis(top_users: dict = None) -> None:
     """
     Добавляет топ-100 пользователей с их балансами в Redis с временем жизни ключа в 10 секунд.
+
+    Args:
+        top_users (dict): Словарь, где ключи — это имена пользователей, а значения — их балансы.
 
     Returns:
         None
     """
     redis_client = await get_redis()
 
+    if top_users is None:
+        top_users = await get_top_100_users()
+
     await redis_client.hset(
         f"top_100:{settings.REDIS_NODE_TAG_3}",
-        mapping=get_top_100_users()
+        mapping=top_users
     )
     await redis_client.expire(f"top_100:{settings.REDIS_NODE_TAG_3}", 10)

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Response, Depends, HTTPException, status
 from app.config import settings
 from app.redis_init import get_redis
 from app.utils.logger_init import logger
-from app.utils.users_init import add_user_data_to_redis
+from app.utils.users_init import add_user_data_to_redis, get_top_100_users, add_top_100_users_to_redis
 from app.utils.mining_chance_init import get_mining_chance_singleton
 from app.utils.data_processing_funcs import get_user_data_tag_in_redis
 from app.users.schemas import SUserAuth, SUserLogin, SRestorePassword
@@ -117,13 +117,12 @@ async def get_me_info(current_user=Depends(get_current_user)):
 @router.get("/leaders")
 async def get_leaders(current_user=Depends(get_current_user)):
     redis_client = await get_redis()
-    top_users = await redis_client.zrevrange('users_balances', 0, 99, withscores=True)
-    return list(
-        map(
-            lambda user_data: {"username": user_data[0], "blocks_balance": float(user_data[1])},
-            top_users
-        )
-    )
+    if not await redis_client.exists(f"top_100:{settings.REDIS_NODE_TAG_3}"):
+        top_users = await get_top_100_users()
+        await add_top_100_users_to_redis(top_users)
+    else:
+        top_users = await redis_client.hgetall(f"top_100:{settings.REDIS_NODE_TAG_3}")
+    return list(top_users)
 
 
 @router.delete("/{user_id}")
