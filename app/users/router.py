@@ -122,7 +122,7 @@ async def get_leaders(current_user=Depends(get_current_user)):
         await add_top_100_users_to_redis(top_users)
     else:
         top_users = await redis_client.hgetall(f"top_100:{settings.REDIS_NODE_TAG_3}")
-    return list(top_users)
+    return top_users
 
 
 @router.delete("/{user_id}")

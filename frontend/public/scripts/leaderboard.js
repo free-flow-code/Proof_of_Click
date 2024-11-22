@@ -25,9 +25,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Hide spinner
     spinner.style.display = 'none';
 
-    // Check if response is an array
-    if (Array.isArray(data)) {
-      data.forEach((leader, index) => {
+    // Check if response is an object
+    if (typeof data === 'object' && data !== null) {
+      // Convert object to array of entries and sort by balance in descending order
+      Object.entries(data).forEach(([username, balance], index) => {
         // Create a div for each leader
         const leaderDiv = document.createElement('div');
         leaderDiv.classList.add('leader');
@@ -42,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         userInfoDiv.classList.add('user-info');
         userInfoDiv.innerHTML = `
           <div class="itemTitle">Username</div>
-          <div class="itemContent">${leader.username}</div>
+          <div class="itemContent">${username}</div>
         `;
 
         // Balance information
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         balanceInfoDiv.classList.add('balance-info');
         balanceInfoDiv.innerHTML = `
           <div class="itemTitle">Balance</div>
-          <div class="itemContent">${leader.blocks_balance} blocks</div>
+          <div class="itemContent">${parseFloat(balance).toLocaleString()} blocks</div>
         `;
 
         // Adding sections to leaderDiv
@@ -88,4 +89,5 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateBlocksCounter(userBalance);
     }, 1000);
   }
+
 });
