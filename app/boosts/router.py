@@ -1,10 +1,7 @@
-import ast
-import json
 from datetime import date
 from typing import Optional
 from fastapi import APIRouter, Depends
 
-from app.config import settings
 from app.redis_init import get_redis
 from app.boosts.dao import ImprovementsDAO
 from app.users.models import Users
@@ -81,11 +78,7 @@ async def get_user_boosts(language: str = "en", current_user=Depends(get_current
 
 
 @router.get("/upgrade/{boost_name}")
-async def upgrade_boost(
-        boost_name: str,
-        current_user=Depends(get_current_user),
-        redis_client=Depends(get_redis)
-) -> dict:
+async def upgrade_boost(boost_name: str, current_user=Depends(get_current_user)) -> dict:
     """
     Покупка улучшения за игровую валюту (blocks).
     Повышает уровень улучшения для пользователя, если достаточно средств на балансе.
@@ -94,7 +87,6 @@ async def upgrade_boost(
     Args:
         boost_name (str): Название улучшения, которое нужно приобрести или улучшить.
         current_user: Текущий пользователь.
-        redis_client: Клиент Redis, для выполнения асинхронных операций.
 
     Returns:
         dict: Словарь с данными о прокаченном улучшении, включающий:
@@ -106,20 +98,20 @@ async def upgrade_boost(
         BadRequestException: Если указанное улучшение не существует.
         NotEnoughFundsException: Если средств на балансе пользователя недостаточно для покупки.
     """
-    all_boosts = await redis_client.get(f"name_boosts:{settings.REDIS_NODE_TAG_1}")
-    if boost_name not in ast.literal_eval(all_boosts):
+    boosts_registry = await get_boosts_registry()
+    all_boosts_names = boosts_registry.get_all_entities().keys()
+    if boost_name not in all_boosts_names:
         raise BadRequestException
 
-    boost = await redis_client.hgetall(f"boost:{settings.REDIS_NODE_TAG_1}:{boost_name}")
-    boost_details = json.loads(boost["data"])
+    boost = boosts_registry.get_entity(boost_name)
     user_id = int(current_user["id"])
+
     # получить уровень и характеристики ПОКУПАЕМОГО улучшения для этого юзера
-    level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, boost_details)
-    boost_level_details = ast.literal_eval(
-        boost_details["levels"][f"{level_purchased_boost}"]
-    )
+    level_purchased_boost, boost_id = await get_level_purchased_boost(user_id, boost_name, boost)
+    boost_level_details = boost["levels"][f"{level_purchased_boost}"]
     boost_value = boost_level_details[1]
     boost_price = float(boost_level_details[0])
+
     # сравнить стоимость улучшения с текущим балансом юзера
     if float(current_user["blocks_balance"]) >= boost_price:
         boost_data = {
