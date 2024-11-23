@@ -117,5 +117,19 @@ def open_json_file(filepath: str = None) -> dict:
         logger.error(f"Error reading json file: {filepath}. File is corrupted or contains invalid data.")
         raise IncorrectJsonFileException
     except Exception as err:
-        logger.error(f"{err}")
+        logger.error(f"Error opening json file. {err}")
 
+
+async def save_json_file(data: dict, filename: str):
+    """
+    Асинхронно сохраняет данные в формате JSON в файл.
+
+    Args:
+        data (dict): Данные для сохранения.
+        filename (str): Имя файла.
+    """
+    try:
+        with open(filename, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+    except Exception as e:
+        logger.error(f"Error saving JSON to {filename}: {e}")

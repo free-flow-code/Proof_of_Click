@@ -1,62 +1,134 @@
 {
-  "autoclicker": {
-    "titles": {
-      "name_ru": "Автокликер",
-      "name_en": "Autoclicker"
+    "autoclicker": {
+        "titles": {
+            "name_ru": "Автокликер",
+            "name_en": "Autoclicker"
+        },
+        "descriptions": {
+            "description_ru": "Каждую секунду автокликер автоматически совершаюет клики, даже когда вы оффлайн. Количество кликов повышается с уровнем автокликера. Время действия: навсегда.",
+            "description_en": "Every second, the autoclicker automatically clicks, even when you are offline. The number of clicks increases with the level of the autoclicker. Duration: forever."
+        },
+        "properties": {
+            "property_ru": "клики в секунду",
+            "property_en": "clicks per second"
+        },
+        "usdt_price": 10.0,
+        "image_id": 11,
+        "levels": {
+            "1": [
+                1.0,
+                2.0
+            ],
+            "2": [
+                3.1,
+                3.0
+            ],
+            "3": [
+                9.5,
+                4.0
+            ],
+            "4": [
+                19.9,
+                5.0
+            ],
+            "5": [
+                64.7,
+                6.0
+            ],
+            "6": [
+                129.3,
+                7.0
+            ],
+            "7": [
+                674.1,
+                8.0
+            ],
+            "8": [
+                1449.7,
+                9.0
+            ],
+            "9": [
+                3860.2,
+                10.0
+            ],
+            "10": [
+                8192.8,
+                12.0
+            ]
+        }
     },
-    "descriptions": {
-      "description_ru": "Каждую секунду автокликер автоматически совершаюет клики, даже когда вы оффлайн. Количество кликов повышается с уровнем автокликера. Время действия: навсегда.",
-      "description_en": "Every second, the autoclicker automatically clicks, even when you are offline. The number of clicks increases with the level of the autoclicker. Duration: forever."
-    },
-    "properties": {
-      "property_ru": "клики в секунду",
-      "property_en": "clicks per second"
-    },
-    "usdt_price": 10,
-    "image_id": 11,
-    "levels": {
-      "1": [1.0, 2],
-      "2": [3.1, 3],
-      "3": [9.5, 4],
-      "4": [19.9, 5],
-      "5": [64.7, 6],
-      "6": [129.3, 7],
-      "7": [674.1, 8],
-      "8": [1449.7, 9],
-      "9": [3860.2, 10],
-      "10": [8192.8, 12]
+    "multiplier": {
+        "titles": {
+            "name_ru": "Умножитель",
+            "name_en": "Multiplier"
+        },
+        "descriptions": {
+            "description_ru": "Увеличивает количество добываемых блоков за клик. Также влияет на автокликер. Время действия: навсегда.",
+            "description_en": "Increases the amount of blocks mined per click. Also affects the autoclicker. Duration: permanent."
+        },
+        "properties": {
+            "property_ru": "блоков за клик",
+            "property_en": "blocks per click"
+        },
+        "usdt_price": 10.0,
+        "image_id": 12,
+        "levels": {
+            "1": [
+                0.2,
+                0.002
+            ],
+            "2": [
+                0.8,
+                0.003
+            ],
+            "3": [
+                1.6,
+                0.004
+            ],
+            "4": [
+                4.3,
+                0.005
+            ],
+            "5": [
+                15.6,
+                0.006
+            ],
+            "6": [
+                78.0,
+                0.008
+            ],
+            "7": [
+                215.0,
+                0.01
+            ],
+            "8": [
+                1075.0,
+                0.012
+            ],
+            "9": [
+                5375.0,
+                0.014
+            ],
+            "10": [
+                10750.0,
+                0.016
+            ],
+            "11": [
+                19350.0,
+                0.018
+            ],
+            "12": [
+                29025.0,
+                0.02
+            ],
+            "13": [
+                40635.0,
+                0.022
+            ],
+            "14": [
+                52825.5,
+                0.025
+            ]
+        }
     }
-  },
-  "multiplier": {
-    "titles": {
-      "name_ru": "Умножитель",
-      "name_en": "Multiplier"
-      },
-    "descriptions": {
-      "description_ru": "Увеличивает количество добываемых блоков за клик. Также влияет на автокликер. Время действия: навсегда.",
-      "description_en": "Increases the amount of blocks mined per click. Also affects the autoclicker. Duration: permanent."
-    },
-    "properties": {
-      "property_ru": "блоков за клик",
-      "property_en": "blocks per click"
-    },
-    "usdt_price": 10,
-    "image_id": 12,
-    "levels": {
-      "1": [0.2, 0.002],
-      "2": [0.8, 0.003],
-      "3": [1.6, 0.004],
-      "4": [4.3, 0.005],
-      "5": [15.6, 0.006],
-      "6": [78.0, 0.008],
-      "7": [215.0, 0.010],
-      "8": [1075.0, 0.012],
-      "9": [5375.0, 0.014],
-      "10": [10750.0, 0.016],
-      "11": [19350.0, 0.018],
-      "12": [29025.0, 0.020],
-      "13": [40635.0, 0.022],
-      "14": [52825.5, 0.025]
-    }
-  }
 }
