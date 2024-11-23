@@ -1,23 +1,10 @@
-class GameItem:
+class GameEntity:
     """
-    Класс, представляющий игровой предмет с произвольными атрибутами.
-
-    Args:
-        key (str): Ключ для идентификации предмета.
-        **kwargs: Произвольные атрибуты и значения, определяющие свойства предмета.
-
-    Attributes:
-        key (str): Ключ предмета.
-        **attrs: Дополнительные атрибуты предмета, переданные через kwargs.
+    Базовый класс для игровых сущностей с общими методами и атрибутами.
     """
-    def __init__(self, key, **kwargs):
-        self.key = key
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
     def __str__(self):
         """
-        Возвращает строковое представление всех атрибутов предмета
+        Возвращает строковое представление всех атрибутов
         и их значений в формате `key=value`.
         """
         attrs = vars(self)
@@ -25,7 +12,7 @@ class GameItem:
 
     def get_value(self, key: str):
         """
-        Получает значение указанного атрибута предмета.
+        Получает значение указанного атрибута.
         """
         attrs = vars(self)
         if key in attrs:
@@ -34,12 +21,28 @@ class GameItem:
 
     def get_all_values(self) -> dict:
         """
-        Возвращает все атрибуты предмета в виде словаря.
+        Возвращает все атрибуты в виде словаря.
         """
         return vars(self)
 
 
-class GameBoost:
+class GameItem(GameEntity):
+    """
+    Класс, представляющий игровой предмет.
+    """
+    def __init__(self, key, **kwargs):
+        self.name: str = key
+        self.titles: dict = kwargs.get("titles")
+        self.descriptions: dict = kwargs.get("descriptions")
+        self.drop_chance: float = kwargs.get("drop_chance")
+        self.maximum_amount: int = kwargs.get("maximum_amount")
+        self.image_id: int = kwargs.get("image_id")
+
+
+class GameBoost(GameEntity):
+    """
+    Класс представляющий улучшение.
+    """
     def __init__(self, boost_name, **kwargs):
         self.name: str = boost_name
         self.titles: dict = kwargs.get("titles")
@@ -49,19 +52,6 @@ class GameBoost:
         self.image_id: int = kwargs.get("image_id")
         self.levels: dict = kwargs.get("levels")
         self.max_levels: int = len(self.levels)
-
-    def __str__(self):
-        attrs = vars(self)
-        return ', '.join(f"{key}={value}" for key, value in attrs.items())
-
-    def get_value(self, key):
-        attrs = vars(self)
-        if key in attrs:
-            return attrs[key]
-        raise KeyError(f"Attribute '{key}' not found.")
-
-    def get_all_values(self):
-        return vars(self)
 
 
 class GameRegistry:

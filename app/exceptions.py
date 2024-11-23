@@ -55,7 +55,7 @@ class AccessDeniedException(PoCException):
 
 class ObjectNotFoundException(PoCException):
     status_code = status.HTTP_404_NOT_FOUND
-    detail = "Object not found"
+    detail = "Object or file not found"
 
 
 class ClicksDataException(PoCException):
@@ -77,6 +77,17 @@ class NotEnoughFundsException(PoCException):
     status_code = status.HTTP_409_CONFLICT
     detail = "Not enough funds."  # недостаточно средств
 
+
 class ValueException(PoCException):
     status_code = status.HTTP_400_BAD_REQUEST
     detail = "Cannot get value"
+
+
+class FilepathNotSpecifiedException(PoCException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "File path not specified"
+
+
+class IncorrectJsonFileException(PoCException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Incorrect JSON file"

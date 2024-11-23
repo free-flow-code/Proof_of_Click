@@ -1,5 +1,4 @@
-import json
-
+from app.utils.data_processing_funcs import open_json_file
 from app.utils.logger_init import logger
 from app.config import settings
 from app.redis_init import get_redis
@@ -24,7 +23,7 @@ async def get_items_quantity_from_db(item_keys: list[str]) -> dict:
     return items_data
 
 
-async def set_items_quantity_in_redis():
+async def set_items_quantity_in_redis() -> None:
     """
     Устанавливает начальное количество для каждого игрового предмета в Redis.
     """
@@ -39,21 +38,24 @@ async def set_items_quantity_in_redis():
         await pipe.execute()
 
 
-async def init_game_items() -> None:
+async def init_game_items(items_data: dict = None) -> None:
     """
-    Создаёт игровые предметы на основе данных из JSON-файла и добавляет их в реестр.
+    Создаёт игровые предметы на основе переданных данных или из JSON-файла и добавляет их в реестр.
+
+    Args:
+        items_data (dict): Данные игровых предметов.
 
     Returns:
         None
     """
     logger.info("Creating game items has been launched...")
-    with open("app/game_data/game_items.json", "r", encoding="utf-8") as file:
-        items = json.loads(file.read())
-        item_keys = []
-        registry = await get_items_registry()
-        for game_item in items:
-            for item_key, item_details in game_item.items():
-                item = GameItem(item_key, **item_details)
-                registry.add_entity(item_key, item)
-                item_keys.append(item_key)
-    logger.info("Game items create successful.")
+    if items_data is None:
+        items_data = open_json_file("app/game_data/game_items.json")
+    try:
+        game_items_registry = await get_items_registry()
+        for boost_name, boost_values in items_data.items():
+            boost = GameItem(boost_name, **boost_values)
+            game_items_registry.add_entity(boost_name, boost)
+        logger.info("Game items create successful.")
+    except Exception as err:
+        logger.error(f"{err}")

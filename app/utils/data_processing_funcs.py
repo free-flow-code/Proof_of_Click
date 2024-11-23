@@ -1,9 +1,15 @@
+import json
 from typing import Optional
 from datetime import datetime, date
 
 from app.utils.logger_init import logger
 from app.users.models import UserRole
 from app.config import settings
+from app.exceptions import (
+    FilepathNotSpecifiedException,
+    ObjectNotFoundException,
+    IncorrectJsonFileException
+)
 
 
 def sanitize_dict_for_redis(user_data: dict) -> dict:
@@ -94,3 +100,22 @@ def log_execution_time_async(func):
         logger.info(f"Время выполнения функции {func.__name__} - {execution_time_ms:.2f} ms.")
         return result
     return wrapper
+
+
+def open_json_file(filepath: str = None) -> dict:
+    if filepath is None:
+        raise FilepathNotSpecifiedException
+
+    try:
+        with open(filepath, "r", encoding="utf-8") as file:
+            file_data = json.loads(file.read())
+            return file_data
+    except FileNotFoundError:
+        logger.error(f"File {file} not found.")
+        raise ObjectNotFoundException
+    except json.JSONDecodeError:
+        logger.error(f"Error reading json file: {filepath}. File is corrupted or contains invalid data.")
+        raise IncorrectJsonFileException
+    except Exception as err:
+        logger.error(f"{err}")
+
