@@ -1,16 +1,13 @@
-import json
 import logging
-from pydantic import ValidationError
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, Depends
 
 from app.utils.logger_init import logger
 from app.users.dependencies import get_current_user
-from app.general_app_data.schemas import SBoostsFile
-from app.utils.data_processing_funcs import save_json_file
+from app.general_app_data.schemas import SBoostsFile, SGameItemsFile
+from app.utils.data_processing_funcs import save_json_file, validate_json_file
 from app.utils.mining_chance_init import get_mining_chance_singleton
 from app.exceptions import (
     ValueException,
-    IncorrectJsonFileException,
     AccessDeniedException
 )
 
@@ -51,20 +48,25 @@ async def upload_boosts_json(file: UploadFile = File(...), current_user=Depends(
     if current_user["role"] != "admin":
         raise AccessDeniedException
 
-    if not file.filename.endswith(".json"):
-        raise IncorrectJsonFileException
     try:
-        content = await file.read()
-        data = json.loads(content)
-        validated_data = SBoostsFile(**data)
-
+        validated_data = await validate_json_file(file, SBoostsFile)
         await save_json_file(validated_data.dict(), "app/game_data/boosts.json")
         return {"status": "success", "data": validated_data.dict()}
-    except json.JSONDecodeError:
-        logger.error(f"Error reading uploaded json file. File is corrupted or contains invalid data.")
-        raise IncorrectJsonFileException
-    except ValidationError as err:
-        logger.error(f"Validation error of uploaded json file: {err.errors()}")
-        raise HTTPException(status_code=422, detail=err.errors())
+    except Exception as err:
+        logger.error(f"Json file upload error. {err}")
+
+
+@router.post("/upload-items-json")
+async def upload_items_json(file: UploadFile = File(...), current_user=Depends(get_current_user)):
+    """
+    Загружает и проверяет JSON-файл с данными об игровых предметах.
+    """
+    if current_user["role"] != "admin":
+        raise AccessDeniedException
+
+    try:
+        validated_data = await validate_json_file(file, SGameItemsFile)
+        await save_json_file(validated_data.dict(), "app/game_data/game_items.json")
+        return {"status": "success", "data": validated_data.dict()}
     except Exception as err:
         logger.error(f"Json file upload error. {err}")

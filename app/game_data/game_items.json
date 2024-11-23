@@ -1,67 +1,67 @@
 {
-  "polymorphic_block": {
-    "titles": {
-      "name_ru": "Полиморфный блок",
-      "name_en": "Polymorphic block"
+    "polymorphic_block": {
+        "titles": {
+            "name_ru": "Полиморфный блок",
+            "name_en": "Polymorphic block"
+        },
+        "descriptions": {
+            "description_ru": "Каждый добытый блок может оказаться полиморфным с вероятностью один на миллиард кликов. Всего таких существует 10 000 шт.",
+            "description_en": "Each mined block has a probability of being polymorphic with one in a billion clicks. There are 10,000 of these."
+        },
+        "drop_chance": 1e-09,
+        "maximum_amount": 10000,
+        "image_id": 21
     },
-    "descriptions": {
-      "description_ru": "Каждый добытый блок может оказаться полиморфным с вероятностью один на миллиард кликов. Всего таких существует 10 000 шт.",
-      "description_en": "Each mined block has a probability of being polymorphic with one in a billion clicks. There are 10,000 of these."
+    "quantum_block": {
+        "titles": {
+            "name_ru": "Квантовый блок",
+            "name_en": "Quantum block"
+        },
+        "descriptions": {
+            "description_ru": "Каждый добытый блок может оказаться квантовым с вероятностью один на триллион кликов. Всего таких существует 1000 шт.",
+            "description_en": "Each mined block has a probability of being quantum with one in a trillion clicks. There are only 1000 of them."
+        },
+        "drop_chance": 1e-12,
+        "maximum_amount": 1000,
+        "image_id": 22
     },
-    "drop_chance": 0.000000001,
-    "maximum_amount": 10000,
-    "image_id": 21
-  },
-  "quantum_block": {
-    "titles": {
-      "name_ru": "Квантовый блок",
-      "name_en": "Quantum block"
+    "interdimensional_block": {
+        "titles": {
+            "name_ru": "Межпространственный блок",
+            "name_en": "Interdimensional block"
+        },
+        "descriptions": {
+            "description_ru": "Каждый добытый блок может оказаться блоком из другого измерения с вероятностью один на квадриллион кликов. Всего таких существует 100 шт.",
+            "description_en": "Each mined block has a one in a quadrillion click chance of being a block from another dimension. There are 100 of these in existence."
+        },
+        "drop_chance": 1e-12,
+        "maximum_amount": 100,
+        "image_id": 23
     },
-    "descriptions": {
-      "description_ru": "Каждый добытый блок может оказаться квантовым с вероятностью один на триллион кликов. Всего таких существует 1000 шт.",
-      "description_en": "Each mined block has a probability of being quantum with one in a trillion clicks. There are only 1000 of them."
+    "black_cat": {
+        "titles": {
+            "name_ru": "Черный кот",
+            "name_en": "Black cat"
+        },
+        "descriptions": {
+            "description_ru": "Невероятный кот! И невероятная удача! Поздравляем!",
+            "description_en": "Incredible cat! And incredible luck! Congratulations!"
+        },
+        "drop_chance": 1e-13,
+        "maximum_amount": 1,
+        "image_id": 24
     },
-    "drop_chance": 0.000000000001,
-    "maximum_amount": 1000,
-    "image_id": 22
-  },
-  "interdimensional_block": {
-    "titles": {
-      "name_ru": "Межпространственный блок",
-      "name_en": "Interdimensional block"
-    },
-    "descriptions": {
-      "description_ru": "Каждый добытый блок может оказаться блоком из другого измерения с вероятностью один на квадриллион кликов. Всего таких существует 100 шт.",
-      "description_en": "Each mined block has a one in a quadrillion click chance of being a block from another dimension. There are 100 of these in existence."
-    },
-    "drop_chance": 0.000000000001,
-    "maximum_amount": 100,
-    "image_id": 23
-  },
-  "black_cat": {
-    "titles": {
-      "name_ru": "Черный кот",
-      "name_en": "Black cat"
-    },
-    "descriptions": {
-      "description_ru": "Невероятный кот! И невероятная удача! Поздравляем!",
-      "description_en": "Incredible cat! And incredible luck! Congratulations!"
-    },
-    "drop_chance": 0.0000000000001,
-    "maximum_amount": 1,
-    "image_id": 24
-  },
-  "white_cat": {
-    "titles": {
-      "name_ru": "Белый кот",
-      "name_en": "White cat"
-    },
-    "descriptions": {
-      "description_ru": "Невероятный кот! И невероятная удача! Поздравляем!",
-      "description_en": "Incredible cat! And incredible luck! Congratulations!"
-    },
-    "drop_chance": 0.0000000000001,
-    "maximum_amount": 1,
-    "image_id": 25
-  }
+    "white_cat": {
+        "titles": {
+            "name_ru": "Белый кот",
+            "name_en": "White cat"
+        },
+        "descriptions": {
+            "description_ru": "Невероятный кот! И невероятная удача! Поздравляем!",
+            "description_en": "Incredible cat! And incredible luck! Congratulations!"
+        },
+        "drop_chance": 1e-13,
+        "maximum_amount": 1,
+        "image_id": 25
+    }
 }

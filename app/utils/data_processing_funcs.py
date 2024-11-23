@@ -1,6 +1,8 @@
 import json
-from typing import Optional
+from typing import Optional, Type
 from datetime import datetime, date
+from fastapi import UploadFile, HTTPException
+from pydantic import BaseModel, ValidationError
 
 from app.utils.logger_init import logger
 from app.users.models import UserRole
@@ -133,3 +135,22 @@ async def save_json_file(data: dict, filename: str):
             json.dump(data, file, ensure_ascii=False, indent=4)
     except Exception as e:
         logger.error(f"Error saving JSON to {filename}: {e}")
+
+
+async def validate_json_file(file: UploadFile, validate_model: Type[BaseModel]):
+    if not file.filename.endswith(".json"):
+        raise IncorrectJsonFileException
+
+    try:
+        content = await file.read()
+        data = json.loads(content)
+        validated_data = validate_model(**data)
+        return validated_data
+    except json.JSONDecodeError:
+        logger.error(f"Error reading uploaded json file. File is corrupted or contains invalid data.")
+        raise IncorrectJsonFileException
+    except ValidationError as err:
+        logger.error(f"Validation error of uploaded json file: {err.errors()}")
+        raise HTTPException(status_code=422, detail=err.errors())
+    except Exception as err:
+        logger.error(f"Json file upload error. {err}")

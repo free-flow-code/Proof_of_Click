@@ -18,3 +18,15 @@ class SBoost(BaseModel):
 
 class SBoostsFile(RootModel[Dict[str, SBoost]]):
     """Модель для файла boosts.json."""
+
+
+class SGameItem(BaseModel):
+    titles: Dict[str, str]
+    descriptions: Dict[str, str]
+    drop_chance: float
+    maximum_amount: int
+    image_id: int
+
+
+class SGameItemsFile(RootModel[Dict[str, SGameItem]]):
+    """Модель для файла game_items.json"""
