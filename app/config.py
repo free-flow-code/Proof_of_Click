@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -26,8 +25,16 @@ class Settings(BaseSettings):
     ORIGINS: list = ["http://127.0.0.1:8000", "http://127.0.0.1:3000"]
     SET_COOKIE_SECURE: bool = False  # Установите True, если используете HTTPS
 
-    REDIS_CLUSTER_HOST: str = "localhost"
-    REDIS_CLUSTER_PORT: int = 7000
+    REDIS_NODES: list[dict] = [
+        {"host": "127.0.0.1", "port": "7000"},
+        {"host": "127.0.0.1", "port": "7001"},
+        {"host": "127.0.0.1", "port": "7002"},
+    ]
+
+    RABBITMQ_USER: str = "guest"
+    RABBITMQ_PASSWORD: str = "guest"
+    RABBITMQ_HOST: str = "localhost"
+    RABBITMQ_PORT: int = 5672
 
     SMTP_HOST: str
     SMTP_USER: str
@@ -39,6 +46,7 @@ class Settings(BaseSettings):
     REDIS_NODE_TAG_2: str = "{group2}"
     REDIS_NODE_TAG_3: str = "{group3}"
     START_INIT_FUNCS: bool = True
+    GAME_DATA_DIR: str = "app/game_data"
 
 
 settings = Settings()

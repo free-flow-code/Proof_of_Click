@@ -28,6 +28,7 @@ from app.game_items.router import router as items_router
 from app.boosts.router import router as improvements_router
 from app.notifications.router import router as notification_router
 from app.general_app_data.router import router as general_app_data_router
+from app.game_data.modificators import set_modified_date
 
 
 @asynccontextmanager
@@ -37,6 +38,7 @@ async def lifespan(app: FastAPI):
     redis_client = await init_redis_cluster()
     await init_game_items()
     await init_game_boosts()
+    set_modified_date()
 
     if settings.START_INIT_FUNCS:
         await set_items_quantity_in_redis()

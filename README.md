@@ -102,8 +102,8 @@ source venv/bin/activate
 ```shell
 $ pip install -r requirements.txt
 ```
-Создайте базу данных PostgreSQL 16.3 и запустите кластер Redis 7.4.1. В корне проекта создайте
-`.env` файл с переменными окружения:
+Создайте базу данных PostgreSQL 16.3 и запустите кластер Redis 7.4.1 и сервер RabbitMQ 4.0.4.
+В корне проекта создайте `.env` файл с переменными окружения:
 
 ```
 DB_HOST=localhost
@@ -122,8 +122,12 @@ ALGORITHM=HS256
 ORIGINS=["http://127.0.0.1:8000", "http://127.0.0.1:3000"]
 SET_COOKIE_SECURE=False
 
-REDIS_CLUSTER_HOST=localhost
-REDIS_CLUSTER_PORT=7000
+REDIS_NODES=[{"host": "127.0.0.1", "port": "7000"}, ...]
+
+RABBITMQ_USER=user
+RABBITMQ_PASSWORD=password
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
 
 SMTP_HOST=smtp.mail.com
 SMTP_USER=mymail@mail.com
@@ -135,6 +139,7 @@ REDIS_NODE_TAG_1={group1}
 REDIS_NODE_TAG_2={group2}
 REDIS_NODE_TAG_3={group3}
 START_INIT_FUNCS=True
+GAME_DATA_DIR="app/game_data"
 ```
 где:
 
@@ -158,8 +163,16 @@ START_INIT_FUNCS=True
 - `SET_COOKIE_SECURE` по умолчанию False, установите True, если используете HTTPS
 
 
-- `REDIS_CLUSTER_HOST` адрес redis кластера, по умолчанию 'localhost'
-- `REDIS_CLUSTER_PORT` порт redis кластера, по умолчанию '7000'
+- `REDIS_NODES` список нод redis кластера, по умолчанию:
+  - ```
+    [{"host": "127.0.0.1", "port": "7000"}, {"host": "127.0.0.1", "port": "7001"}, {"host": "127.0.0.1", "port": "7002"},]
+    ```
+
+
+- `RABBITMQ_USER` имя пользователя для RabbitMQ, по умолчанию 'guest'
+- `RABBITMQ_PASSWORD` пароль для RabbitMQ, по умолчанию 'guest'
+- `RABBITMQ_HOST` адрес RabbitMQ-сервера, по умолчанию 'localhost'
+- `RABBITMQ_PORT` порт RabbitMQ-сервера, по умолчанию '5672'
 
 
 - `SMTP_HOST` хост почтового сервера, нет значения по умолчанию
@@ -177,6 +190,8 @@ START_INIT_FUNCS=True
 Функции инициализации это - установить количество игровых предметов в redis,
 добавить балансы всех пользователей в redis, добавить топ 100 пользователей в redis,
 добавить данные всех пользователей с автокликером в redis (для обновления баланса в фоне).
+- `GAME_DATA_DIR` путь к директории, где хранятся файлы игровых данных, таких как 
+boosts.json и game_items.json, по умолчанию 'app/game_data'
 
 ### Запуск приложения <a name="start_app"></a>
 
