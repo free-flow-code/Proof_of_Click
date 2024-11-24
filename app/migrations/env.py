@@ -15,6 +15,7 @@ from app.lots.models import Lots
 from app.game_items.models import GameItems
 from app.boosts.models import Improvements
 from app.notifications.models import Notifications
+from app.general_app_data.models import MiningChance
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
