@@ -2,6 +2,7 @@ from app.utils.logger_init import logger
 from app.config import settings
 from app.redis_init import get_redis
 from app.redis_helpers.lua_scripts import total_sum_script
+from app.general_app_data.dao import MiningChanceDAO
 
 
 class MiningChanceSingleton:
@@ -46,4 +47,6 @@ async def set_mining_chance() -> None:
 
     singleton = get_mining_chance_singleton()
     singleton.set_value(mining_chance)
+    await MiningChanceDAO.add(value=mining_chance)
+
     logger.info("Mining chance calculated successfully.")
