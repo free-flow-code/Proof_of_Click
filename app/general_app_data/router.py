@@ -1,8 +1,11 @@
 import logging
 from fastapi import APIRouter, UploadFile, File, Depends
 
+from app.config import settings
+from app.redis_init import get_redis
 from app.utils.logger_init import logger
 from app.users.dependencies import get_current_user
+from app.redis_helpers.lua_scripts import total_sum_script
 from app.general_app_data.schemas import SBoostsFile, SGameItemsFile
 from app.utils.data_processing_funcs import save_json_file, validate_json_file
 from app.utils.mining_chance_init import get_mining_chance_singleton
@@ -38,6 +41,19 @@ async def get_mining_chance() -> float:
     except ValueError as err:
         logging.error(f"Ошибка получения шанса добычи: {err}")
         raise ValueException
+
+
+@router.get("/total-blocks")
+async def get_total_blocks_generated(redis_client=Depends(get_redis)) -> float:
+    """
+    Возвращает количество блоков сгенерированное всеми пользователями за все время.
+
+    Returns:
+         float: Количество блоков.
+    """
+    script = redis_client.register_script(total_sum_script)
+    total_sum = await script(keys=[f"users_balances:{settings.REDIS_NODE_TAG_3}"])
+    return total_sum
 
 
 @router.post("/upload-boosts-json")
