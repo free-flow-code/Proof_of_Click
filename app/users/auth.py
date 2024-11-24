@@ -85,6 +85,6 @@ async def add_new_user_to_db(user_data: SUserAuth, referral_link: str = None):
         referer=referer,
         improvements=None,
         telegram_id=None,
-        last_update_time=None
+        last_update_time=int(datetime.now().timestamp())
     )
     return created_user

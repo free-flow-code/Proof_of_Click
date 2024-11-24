@@ -94,12 +94,6 @@ async def get_current_user(token: str = Depends(get_token)) -> dict:
         if not user:
             raise UserIsNotPresentException
         user_data = sanitize_dict_for_redis(user)
-        # Храним ключи на разных нодах, в зависимости от наличия автокликера
-        if user_data["clicks_per_sec"]:
-            user_data["redis_tag"] = settings.REDIS_NODE_TAG_2
-            await add_user_data_to_redis(user_data)
-        else:
-            user_data["redis_tag"] = settings.REDIS_NODE_TAG_1
-            await add_user_data_to_redis(user_data, redis_ttl=3600)
+        await add_user_data_to_redis(user_data)
 
     return user_data

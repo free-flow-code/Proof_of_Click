@@ -38,7 +38,7 @@ router = APIRouter(
 async def register_user(response: Response, user_data: SUserAuth):
     created_user = await add_new_user_to_db(user_data)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user, redis_ttl=3600)
+    await add_user_data_to_redis(created_user)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logger.info(f"User {user_data.username} registered.")
 
@@ -47,7 +47,7 @@ async def register_user(response: Response, user_data: SUserAuth):
 async def register_ref_user(response: Response, user_data: SUserAuth, referral_link: str):
     created_user = await add_new_user_to_db(user_data, referral_link)
     await login_user(response, user_data)
-    await add_user_data_to_redis(created_user, redis_ttl=3600)
+    await add_user_data_to_redis(created_user)
     send_verify_code_to_email.delay(created_user['mail_confirm_code'], user_data.mail)
     logger.info(f"User {user_data.username} registered.")
 

@@ -67,7 +67,7 @@ async def receive_clicks(
         float(current_user["blocks_balance"]) + (clicks * float(current_user["blocks_per_click"]) * mining_chance),
         3
     )
-    await add_user_data_to_redis(current_user)
+    await add_user_data_to_redis(current_user, balance_update=True)
 
     # подсчитываем выпали ли игровые предметы и сколько
     count_won_items = await calculate_items_won(int(current_user["id"]), clicks, redis_client)

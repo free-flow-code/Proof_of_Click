@@ -1,4 +1,5 @@
-from typing import Optional, AsyncIterator
+from datetime import datetime
+from typing import AsyncIterator
 
 from app.config import settings
 from app.users.dao import UsersDAO
@@ -32,15 +33,20 @@ async def fetch_all_users_by_key(key: dict, batch_size: int = 100) -> AsyncItera
         offset += batch_size
 
 
-async def add_user_data_to_redis(user_data: dict, redis_ttl: Optional[int] = None) -> None:
+async def add_user_data_to_redis(user_data: dict, balance_update: bool = False) -> None:
     """
     Добавляет данные пользователя в Redis.
 
-    Устанавливает время жизни (TTL), если передан соответствующий параметр.
+    Устанавливает время жизни (TTL), в зависимости от наличия автокликера.
 
     Args:
         user_data (dict): Словарь с данными пользователя, которые необходимо сохранить.
-        redis_ttl (Optional[int]): Время жизни ключа в секундах. Если None, TTL не устанавливается.
+        balance_update (bool): Обновляется баланс или нет.
+
+    Notes:
+        Если флаг balance_update == True, то в значение "last_update_time" будет добавлено
+        текущее время, в секундах от начала эпохи. Это необходимо для подсчета балансов пользователей
+        с автокликером в фоновой задаче.
     """
     redis_client = await get_redis()
     # Обновить баланс
@@ -48,17 +54,26 @@ async def add_user_data_to_redis(user_data: dict, redis_ttl: Optional[int] = Non
         f"users_balances:{settings.REDIS_NODE_TAG_3}",
         {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)}
     )
-    # Установить redis_tag по умолчанию, если он не указан
-    redis_tag = user_data.get('redis_tag', settings.REDIS_NODE_TAG_1)
-    user_id = user_data["id"]
-    key = f"user_data:{redis_tag}:{user_id}"
 
+    ttl = None
+    if not user_data.get("clicks_per_sec"):
+        ttl = 3600  # Если пользователь без автокликера, то хранить его данные один час
+        user_data['redis_tag'] = settings.REDIS_NODE_TAG_1
+    else:
+        user_data['redis_tag'] = settings.REDIS_NODE_TAG_2
+
+    if balance_update:
+        user_data["last_update_time"] = datetime.now().timestamp()
+
+    user_id = user_data["id"]
+    redis_tag = user_data.get("redis_tag")
+    key = f"user_data:{redis_tag}:{user_id}"
     await redis_client.hset(key, mapping=user_data)
 
-    if redis_ttl is not None:
+    if ttl is not None:
         current_ttl = await redis_client.ttl(key)
         if current_ttl == -1:  # Если ключ бессрочный
-            await redis_client.expire(key, redis_ttl)
+            await redis_client.expire(key, ttl)
 
 
 @log_execution_time_async
@@ -74,7 +89,6 @@ async def add_users_with_autoclicker_to_redis() -> None:
     async for batch in fetch_all_users_by_key(key={"clicks_per_sec": ("!=", 0)}, batch_size=100):
         for record in batch:
             user_data = sanitize_dict_for_redis(record)
-            user_data["redis_tag"] = settings.REDIS_NODE_TAG_2
             await add_user_data_to_redis(user_data)
     logger.info("Users with atoclicker loads successful to redis.")
 

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, ForeignKey, Float, Enum, J
 from sqlalchemy.orm import relationship
 import enum
 from random import randint
+from datetime import datetime
 
 from app.database import Base
 from app.boosts.models import Improvements
@@ -29,7 +30,7 @@ class Users(Base):
     blocks_per_click = Column(Float, default=0.001)  # Пересчитывать каждый раз при покупке multiplier
     improvements = Column(JSON, default=[])  # TODO удалить?
     telegram_id = Column(Integer)
-    last_update_time = Column(Date)
+    last_update_time = Column(Integer, default=datetime.now().timestamp())
     role = Column(Enum(UserRole), nullable=False, default=UserRole.user)
     mail_confirm_code = Column(Integer, default=randint(100000, 999999))
     is_confirm_mail = Column(Boolean, default=False)

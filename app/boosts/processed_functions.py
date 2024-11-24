@@ -67,17 +67,13 @@ async def recalculate_user_data_in_dbs(
         - Если пользователь покупает не автокликер и у него еще нет автокликера, то время хранения
           его данных в Redis - 1 час. Иначе - бесконечно. Это нужно для подсчета баланса в фоне.
     """
-    redis_ttl = None
-    if boost_name.lower() != "autoclicker" and not current_user["clicks_per_sec"]:
-        redis_ttl = 3600
-
     if boost_name.lower() == "autoclicker":
         current_user["clicks_per_sec"] = int(boost_value)
     elif boost_name.lower() == "multiplier":
         current_user["blocks_per_click"] = float(boost_value)
 
     current_user["blocks_balance"] = round(float(current_user["blocks_balance"]) - boost_price, 3)
-    await add_user_data_to_redis(current_user, redis_ttl)
+    await add_user_data_to_redis(current_user, balance_update=True)
 
     if current_user.get("redis_tag", None):
         del current_user["redis_tag"]
