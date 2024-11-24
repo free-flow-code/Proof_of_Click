@@ -11,7 +11,8 @@ from app.utils.data_processing_funcs import save_json_file, validate_json_file
 from app.utils.mining_chance_init import get_mining_chance_singleton
 from app.exceptions import (
     ValueException,
-    AccessDeniedException
+    AccessDeniedException,
+    InternalServerError
 )
 
 router = APIRouter(
@@ -51,9 +52,13 @@ async def get_total_blocks_generated(redis_client=Depends(get_redis)) -> float:
     Returns:
          float: Количество блоков.
     """
-    script = redis_client.register_script(total_sum_script)
-    total_sum = await script(keys=[f"users_balances:{settings.REDIS_NODE_TAG_3}"])
-    return total_sum
+    try:
+        script = redis_client.register_script(total_sum_script)
+        total_sum = await script(keys=[f"users_balances:{settings.REDIS_NODE_TAG_3}"])
+        return total_sum
+    except Exception as err:
+        logger.error(f"Ошибка получения количества сгенерированных блоков: {err}")
+        raise InternalServerError
 
 
 @router.post("/upload-boosts-json")
@@ -69,7 +74,8 @@ async def upload_boosts_json(file: UploadFile = File(...), current_user=Depends(
         await save_json_file(validated_data.dict(), "app/game_data/boosts.json")
         return {"status": "success", "data": validated_data.dict()}
     except Exception as err:
-        logger.error(f"Json file upload error. {err}")
+        logger.error(f"Ошибка загрузки файла на сервер: {err}")
+        raise InternalServerError
 
 
 @router.post("/upload-items-json")
@@ -85,4 +91,5 @@ async def upload_items_json(file: UploadFile = File(...), current_user=Depends(g
         await save_json_file(validated_data.dict(), "app/game_data/game_items.json")
         return {"status": "success", "data": validated_data.dict()}
     except Exception as err:
-        logger.error(f"Json file upload error. {err}")
+        logger.error(f"Ошибка загрузки файла на сервер: {err}")
+        raise InternalServerError
