@@ -22,5 +22,9 @@ celery.conf.beat_schedule = {
     "check_and_update_game_data_files": {
         "task": "check_and_update_game_data_files",
         "schedule": timedelta(hours=1),
+    },
+    "recalculate_users_data": {
+        "task": "recalculate_users_data_task",
+        "schedule": timedelta(seconds=5)
     }
 }

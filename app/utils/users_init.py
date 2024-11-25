@@ -1,3 +1,7 @@
+import json
+import numpy as np
+from typing import Optional
+from itertools import islice
 from datetime import datetime
 from typing import AsyncIterator
 
@@ -5,9 +9,63 @@ from app.config import settings
 from app.users.dao import UsersDAO
 from app.redis_init import get_redis
 from app.utils.logger_init import logger
-from app.redis_helpers.lua_scripts import top_users_script
+from app.tasks.tasks import calculate_items_won_by_list
+from app.tasks.tasks import add_items_to_db
+from app.utils.game_items_init import get_items_registry
+from app.redis_helpers.lua_scripts import top_users_script, recalculate_user_data_script
 from app.utils.data_processing_funcs import log_execution_time_async
 from app.utils.data_processing_funcs import sanitize_dict_for_redis
+
+
+async def calculate_items_won(user_id: int, count_clicks: int, redis_client) -> Optional[int]:
+    """
+    Подсчитывает количество выпавших игровых предметов для пользователя и обновляет данные в Redis.
+
+    Args:
+        user_id (int): Идентификатор пользователя, для которого вычисляются выпавшие предметы.
+        count_clicks (int): Количество кликов, совершённых пользователем.
+        redis_client: Клиент Redis для взаимодействия с базой данных.
+
+    Returns:
+        Optional[int]: Общее количество выпавших предметов или None, если предметы не выпали.
+
+    Notes:
+        - Проверяется шанс выпадения для каждого предмета.
+        - Если общее количество выпавших предметов превышает максимум, предмет больше не учитывается.
+        - Обновления количества предметов и их добавление в базу данных происходят асинхронно.
+    """
+    item_quantities = await redis_client.hgetall(f"item_quantities:{settings.REDIS_NODE_TAG_1}")
+    items_registry = await get_items_registry()
+    updates = {}
+    total_won = 0
+
+    for item_key, item_details in items_registry.get_all_entities().items():
+        # уточняем, количество уже выпавших предметов и его ограничение
+        current_quantity = int(item_quantities.get(item_key, 0))
+        max_quantity = item_details.get_value("maximum_amount")
+        if current_quantity >= max_quantity:
+            items_registry.delete_entity(item_key)
+            continue
+
+        # вычисляем количество выпавших предметов на основе шанса
+        drop_chance = float(item_details.get_value("drop_chance"))
+        won_items = np.random.binomial(count_clicks, drop_chance)
+
+        if won_items:
+            updates[item_key] = current_quantity + won_items
+            total_won += won_items
+
+            add_items_to_db.delay(
+                user_id=user_id,
+                item_key=item_key,
+                items_count=won_items,
+                image_id=item_details.get_value("image_id")
+            )
+
+    if updates:
+        await redis_client.hmset(f"item_quantities:{settings.REDIS_NODE_TAG_1}", updates)
+
+    return total_won
 
 
 async def fetch_all_users_by_key(key: dict, batch_size: int = 100) -> AsyncIterator[list]:
@@ -177,3 +235,49 @@ async def add_top_100_users_to_redis(top_users: dict = None) -> None:
         mapping=top_users
     )
     await redis_client.expire(f"top_100:{settings.REDIS_NODE_TAG_3}", 10)
+
+
+@log_execution_time_async
+async def recalculate_users_data_in_redis(pattern: str = None, count=100) -> None:
+    """
+    Пересчитывает балансы пользователей в зависимости от значения автокликера,
+    умножителя и времени с последнего обновления.
+
+    Args:
+        pattern (str, optional): Шаблон ключей для поиска пользователей в Redis.
+                                 По умолчанию используется шаблон для `REDIS_NODE_TAG_2`.
+        count (int): Количество пользователей, обрабатываемых за один батч. По умолчанию 100.
+
+    Returns:
+        None
+    """
+    users_keys = set()
+    balances_key = f"users_balances:{settings.REDIS_NODE_TAG_3}"
+    redis_client = await get_redis()
+    if pattern is None:
+        pattern = f"user_data:{settings.REDIS_NODE_TAG_2}:*"
+
+    try:
+        def get_batches(s, batch_size):
+            it = iter(s)
+            while True:
+                batch = list(islice(it, batch_size))
+                if not batch:
+                    break
+                yield batch
+
+        async for key in redis_client.scan_iter(match=pattern):
+            users_keys.add(key)
+        script = redis_client.register_script(recalculate_user_data_script)
+
+        for keys_batch in get_batches(users_keys, count):
+            current_time = int(datetime.now().timestamp())
+            users_clicks = await script(
+                keys=keys_batch,
+                args=[json.dumps(keys_batch), current_time, balances_key]
+            )
+            calculate_items_won_by_list.delay(users_clicks, redis_client)
+    except Exception as err:
+        logger.error(f"Ошибка при пересчете балансов пользователей с автокликером: {err}\n{err.with_traceback()}")
+    finally:
+        await redis_client.close()

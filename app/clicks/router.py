@@ -9,7 +9,7 @@ from app.utils.rate_limiter import limiter
 from app.exceptions import ClicksDataException
 from app.users.dependencies import get_current_user
 from app.utils.users_init import add_user_data_to_redis
-from app.clicks.calculate_funcs import calculate_items_won
+from app.utils.users_init import calculate_items_won
 from app.utils.mining_chance_init import get_mining_chance_singleton
 
 router = APIRouter(
