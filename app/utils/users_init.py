@@ -12,9 +12,14 @@ from app.utils.logger_init import logger
 from app.tasks.tasks import calculate_items_won_by_list
 from app.tasks.tasks import add_items_to_db
 from app.utils.game_items_init import get_items_registry
-from app.redis_helpers.lua_scripts import top_users_script, recalculate_user_data_script
 from app.utils.data_processing_funcs import log_execution_time_async
 from app.utils.data_processing_funcs import sanitize_dict_for_redis
+from app.redis_helpers.lua_scripts import (
+    top_users_script,
+    recalculate_user_data_script,
+    add_user_data_script,
+    add_user_balance_script
+)
 
 
 async def calculate_items_won(user_id: int, count_clicks: int, redis_client) -> Optional[int]:
@@ -94,7 +99,6 @@ async def fetch_all_users_by_key(key: dict, batch_size: int = 100) -> AsyncItera
 async def add_user_data_to_redis(user_data: dict, balance_update: bool = False) -> None:
     """
     Добавляет данные пользователя в Redis.
-
     Устанавливает время жизни (TTL), в зависимости от наличия автокликера.
 
     Args:
@@ -105,33 +109,34 @@ async def add_user_data_to_redis(user_data: dict, balance_update: bool = False) 
         Если флаг balance_update == True, то в значение "last_update_time" будет добавлено
         текущее время, в секундах от начала эпохи. Это необходимо для подсчета балансов пользователей
         с автокликером в фоновой задаче.
+        Добавление данных происходит на стороне Redis с помощью lua-скриптов.
+        Это гарантирует атомарность операций, чтобы избежать состояния гонки при обновлении
+        данных из разных мест приложения.
     """
     redis_client = await get_redis()
-    # Обновить баланс
-    await redis_client.zadd(
-        f"users_balances:{settings.REDIS_NODE_TAG_3}",
-        {f"{user_data.get('username')}": user_data.get("blocks_balance", 0.0)}
-    )
 
-    ttl = None
+    ttl = 0
     if not user_data.get("clicks_per_sec"):
         ttl = 3600  # Если пользователь без автокликера, то хранить его данные один час
         user_data['redis_tag'] = settings.REDIS_NODE_TAG_1
     else:
         user_data['redis_tag'] = settings.REDIS_NODE_TAG_2
 
+    user_data_key = f"user_data:{user_data.get('redis_tag')}:{user_data['id']}"
+    balances_key = f"users_balances:{settings.REDIS_NODE_TAG_3}"
+
     if balance_update:
         user_data["last_update_time"] = datetime.now().timestamp()
 
-    user_id = user_data["id"]
-    redis_tag = user_data.get("redis_tag")
-    key = f"user_data:{redis_tag}:{user_id}"
-    await redis_client.hset(key, mapping=user_data)
+    add_data_script = redis_client.register_script(add_user_data_script)
+    add_balance_script = redis_client.register_script(add_user_balance_script)
+    flat_user_data = [str(k) for pair in user_data.items() for k in pair]
 
-    if ttl is not None:
-        current_ttl = await redis_client.ttl(key)
-        if current_ttl == -1:  # Если ключ бессрочный
-            await redis_client.expire(key, ttl)
+    await add_data_script(keys=[user_data_key], args=[ttl, *flat_user_data])
+    await add_balance_script(
+        keys=[balances_key],
+        args=[user_data.get("username"), user_data.get("blocks_balance")]
+    )
 
 
 @log_execution_time_async

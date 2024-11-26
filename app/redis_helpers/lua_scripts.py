@@ -24,6 +24,26 @@ end
 
 return result
 """
+# Lua-скрипт для добавления баланса пользователя
+add_user_balance_script = """
+local balances_key = KEYS[1]
+local username = ARGV[1]
+local balance = tonumber(ARGV[2])
+
+redis.call("ZADD", balances_key, balance, username)
+"""
+# Lua-скрипт для добавления данных пользователя
+add_user_data_script = """
+local key = KEYS[1]
+local ttl = tonumber(ARGV[1])
+local user_data = {unpack(ARGV, 2)}
+
+redis.call("HMSET", key, unpack(user_data))
+
+if ttl > 0 then
+    redis.call("EXPIRE", key, ttl)
+end
+"""
 # Lua-скрипт для пересчета баланса пользователей в зависимости от значения автокликера,
 # умножителя и времени с последнего обновления.
 recalculate_user_data_script = """
