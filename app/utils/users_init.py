@@ -171,12 +171,14 @@ async def add_all_users_balances_to_redis(batch_size: int = 100) -> None:
             records = await UsersDAO.find_all(offset=offset, limit=batch_size)
             if not records:
                 break
-            for user in records:
-                await redis_client.zadd(
-                    f"users_balances:{settings.REDIS_NODE_TAG_3}",
-                    {f"{user.get('username')}": user.get("blocks_balance", 0.0)}
-                )
-                offset += batch_size
+            async with redis_client.pipeline() as pipe:
+                for user in records:
+                    await pipe.zadd(
+                        f"users_balances:{settings.REDIS_NODE_TAG_3}",
+                        {f"{user.get('username')}": user.get("blocks_balance", 0.0)}
+                    )
+                await pipe.execute()
+            offset += batch_size
         logger.info("All users balances loads successful to redis.")
 
 
